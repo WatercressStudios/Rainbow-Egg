@@ -186,28 +186,36 @@ init -50 python:
 
                 # special case for 'e' and 'ec': build blinking eyes into 'ed'
                 # fill in the missing files as "default"
-                if 'e' in basedict[basepath]['parts'] and 'ec' in basedict[basepath]['parts']:
+                if 'e' in basedict[basepath]['parts'] or 'ec' in basedict[basepath]['parts']:
                     for emote in basedict[basepath]['emotes']:
                         eyesopen = basepath + (u'e', emote)
                         eyesclose = basepath + (u'ec', emote)
                         if not eyesopen in basedict[basepath]['list']:
                             renpy.image(eyesopen, ' '.join(basepath+(u'e', u'default')))
+                        if not basepath+(u'e', u'default') in basedict[basepath]['list']:
+                            renpy.image(basepath+(u'e', u'default'), ' '.join(basepath+(u'ec', u'default')))
                         if not eyesclose in basedict[basepath]['list']:
                             renpy.image(eyesclose, ' '.join(basepath+(u'ec', u'default')))
+                        if not basepath+(u'ec', u'default') in basedict[basepath]['list']:
+                            renpy.image(basepath+(u'ec', u'default'), ' '.join(basepath+(u'e', u'default')))
                         renpy.image(basepath + (u'ed', emote), blinkeyes(' '.join(eyesopen), ' '.join(eyesclose)))
                         basedict[basepath]['list'].append(basepath + (u'ed', emote))
                     basedict[basepath]['parts'].append('ed')
 
                 # special case for 'm' and 'mc': build flapping mouth into 'md'
                 # fill in the missing files as "default"
-                if 'm' in basedict[basepath]['parts'] and 'mc' in basedict[basepath]['parts']:
+                if 'm' in basedict[basepath]['parts'] or 'mc' in basedict[basepath]['parts']:
                     for emote in basedict[basepath]['emotes']:
                         mouthopen = basepath + (u'm', emote)
                         mouthclose = basepath + (u'mc', emote)
                         if not mouthopen in basedict[basepath]['list']:
                             renpy.image(mouthopen, ' '.join(basepath+(u'm', u'default')))
+                        if not basepath+(u'm', u'default') in basedict[basepath]['list']:
+                            renpy.image(basepath+(u'm', u'default'), ' '.join(basepath+(u'mc', u'default')))
                         if not mouthclose in basedict[basepath]['list']:
                             renpy.image(mouthclose, ' '.join(basepath+(u'mc', u'default')))
+                        if not basepath+(u'mc', u'default') in basedict[basepath]['list']:
+                            renpy.image(basepath+(u'mc', u'default'), ' '.join(basepath+(u'm', u'default')))
                         renpy.image(basepath + (u'md', emote), FlapMouth(' '.join(mouthclose), ' '.join(mouthopen), cha=charname))
                         renpy.image(basepath + (u'mdo', emote), FlapMouth(' '.join(mouthopen), ' '.join(mouthclose), cha=charname))
                         basedict[basepath]['list'].append(basepath + (u'md', emote))
