@@ -46,7 +46,7 @@ define build.name = "RainbowEgg"
 
 define config.has_sound = True
 define config.has_music = True
-define config.has_voice = True
+define config.has_voice = False
 
 
 ## To allow the user to play a test sound on the sound or voice channel,
@@ -77,12 +77,27 @@ define config.exit_transition = dissolve
 
 ## A transition that is used after a game has been loaded.
 
-define config.after_load_transition = None
+#define config.after_load_transition = dissolve
+
+
+## Used between screens of the game menu.
+
+#define config.intra_transition = dissolve
+
+
+## Used when entering the game menu from the main menu.
+
+#define config.main_game_transition = dissolve
+
+
+## Used when returning to the main menu from the game.
+
+#define config.game_main_transition = dissolve
 
 
 ## Used when entering the main menu after the game has ended.
 
-define config.end_game_transition = None
+#define config.end_game_transition = dissolve
 
 
 ## A variable to set the transition used when the game starts does not exist.

@@ -4,6 +4,28 @@
 
 init offset = -1
 
+init:
+    python:
+        navigation_shown = False
+        current_page = None
+
+        class ShowMenuWrapper(ShowMenu):
+            current_screen = None
+            screen_changed = False
+
+            def __call__(self):
+                ShowMenuWrapper.screen_changed = not ShowMenuWrapper.current_screen == self.screen
+                super(ShowMenuWrapper, self).__call__()
+                ShowMenuWrapper.current_screen = self.screen
+                
+
+    transform animelem(delay=0.0, startx=0.0, endx=50.0, starty=0.0, endy=0.0, starta=0.0, enda=1.0, startzoom=1.0, endzoom=1.0, time=0.5):
+        xoffset startx yoffset starty alpha starta zoom startzoom
+        pause delay
+        ease time xoffset endx yoffset endy zoom endzoom alpha enda
+        
+        on replaced:
+            ease time xoffset startx yoffset starty zoom startzoom alpha starta
 
 ################################################################################
 ## Styles
@@ -285,6 +307,14 @@ style quick_button_text:
 ## to other menus, and to start the game.
 
 screen navigation():
+    $ time = 0.5
+    $ gap = 0.1
+    if navigation_shown:
+        $ time = 0.0
+        $ gap = 0.0
+    else:
+        $ navigation_shown = True
+    $ delay = 0.0
 
     vbox:
         style_prefix "navigation"
@@ -295,36 +325,38 @@ screen navigation():
         spacing gui.navigation_spacing
 
         if main_menu:
-
-            textbutton _("Start") action Start()
-
+            textbutton _("Start") action Start() at animelem(delay, time=time)
+            $ delay += gap
         else:
+            textbutton _("History") action ShowMenu("history") at animelem(delay, time=time)
+            $ delay += gap
 
-            textbutton _("History") action ShowMenu("history")
+            textbutton _("Save") action ShowMenu("save") at animelem(delay, time=time)
+            $ delay += gap
 
-            textbutton _("Save") action ShowMenu("save")
-
-        textbutton _("Load") action ShowMenu("load")
-
-        textbutton _("Preferences") action ShowMenu("preferences")
+        textbutton _("Load") action ShowMenuWrapper("load") at animelem(delay, time=time)
+        $ delay += gap
+        textbutton _("Preferences") action ShowMenu("preferences") at animelem(delay, time=time)
+        $ delay += gap
 
         if _in_replay:
-
-            textbutton _("End Replay") action EndReplay(confirm=True)
-
+            textbutton _("End Replay") action EndReplay(confirm=True) at animelem(delay, time=time)
+            $ delay += gap
         elif not main_menu:
+            textbutton _("Main Menu") action MainMenu() at animelem(delay, time=time)
+            $ delay += gap
 
-            textbutton _("Main Menu") action MainMenu()
-
-        textbutton _("About") action ShowMenu("about")
+        textbutton _("About") action ShowMenuWrapper("about") at animelem(delay, time=time)
+        $ delay += gap
 
         if renpy.variant("pc"):
-
             ## Help isn't necessary or relevant to mobile devices.
-            textbutton _("Help") action ShowMenu("help")
+            textbutton _("Help") action ShowMenu("help") at animelem(delay, time=time)
+            $ delay += gap
 
             ## The quit button is banned on iOS and unnecessary on Android.
-            textbutton _("Quit") action Quit(confirm=not main_menu)
+            textbutton _("Quit") action Quit(confirm=not main_menu) at animelem(delay, time=time)
+            $ delay += gap
 
 
 style navigation_button is gui_button
@@ -533,7 +565,6 @@ style return_button:
 ## example of how to make a custom screen.
 
 screen about():
-
     tag menu
 
     ## This use statement includes the game_menu screen inside this one. The
@@ -543,16 +574,23 @@ screen about():
 
         style_prefix "about"
 
-        vbox:
+        window:
+            background None
+            xpadding 50
+            vbox:
+                $ delay = 0.0
+                $ gap = 0.1
+                label "[config.name!t]" at animelem(delay)
+                $ delay += gap
+                text _("Version [config.version!t]\n") at animelem(delay)
+                $ delay += gap
 
-            label "[config.name!t]"
-            text _("Version [config.version!t]\n")
+                ## gui.about is usually set in options.rpy.
+                if gui.about:
+                    text "[gui.about!t]\n" at animelem(delay)
+                    $ delay += gap
 
-            ## gui.about is usually set in options.rpy.
-            if gui.about:
-                text "[gui.about!t]\n"
-
-            text _("Made with {a=https://www.renpy.org/}Ren'Py{/a} [renpy.version_only].\n\n[renpy.license!t]")
+                text _("Made with {a=https://www.renpy.org/}Ren'Py{/a} [renpy.version_only].\n\n[renpy.license!t]") at animelem(delay)
 
 
 ## This is redefined in options.rpy to add text to the about screen.
@@ -597,7 +635,6 @@ screen file_slots(title):
     use game_menu(title):
 
         fixed:
-
             ## This ensures the input will get the enter event before any of the
             ## buttons do.
             order_reverse True
@@ -605,6 +642,7 @@ screen file_slots(title):
             ## The page name, which can be edited by clicking on a button.
             button:
                 style "page_label"
+                at animelem(0.0, starty=-50, endx=0)
 
                 key_events True
                 xalign 0.5
@@ -613,6 +651,16 @@ screen file_slots(title):
                 input:
                     style "page_label_text"
                     value page_name_value
+
+            python:
+                delays = [x * 0.0 for x in range(0, gui.file_slot_cols * gui.file_slot_rows)]
+                time = 0.0
+                page = FilePageName()
+                if page != current_page:
+                    delays = [x * 0.05 for x in range(0, gui.file_slot_cols * gui.file_slot_rows)]
+                    renpy.random.shuffle(delays)
+                    time = 0.3
+#                 current_page = page
 
             ## The grid of file slots.
             grid gui.file_slot_cols gui.file_slot_rows:
@@ -627,23 +675,33 @@ screen file_slots(title):
 
                     $ slot = i + 1
 
-                    button:
-                        action FileAction(slot)
+                    frame:
+                        background None
+                        xysize (gui.slot_button_width, gui.slot_button_height)
+                        offset (gui.slot_button_width/2, gui.slot_button_height/2)
+                        button:
+                            anchor (0.5, 0.5)
+                            at animelem(delays[i], endx=0, startzoom=0.5, time=time)
 
-                        has vbox
+                            action FileAction(slot)
 
-                        add FileScreenshot(slot) xalign 0.5
+                            has vbox
 
-                        text FileTime(slot, format=_("{#file_time}%A, %B %d %Y, %H:%M"), empty=_("empty slot")):
-                            style "slot_time_text"
+                            add FileScreenshot(slot) xalign 0.5
 
-                        text FileSaveName(slot):
-                            style "slot_name_text"
+                            text FileTime(slot, format=_("{#file_time}%A, %B %d %Y, %H:%M"), empty=_("empty slot")):
+                                style "slot_time_text"
 
-                        key "save_delete" action FileDelete(slot)
+                            text FileSaveName(slot):
+                                style "slot_name_text"
+
+                            key "save_delete" action FileDelete(slot)
+
 
             ## Buttons to access other pages.
             hbox:
+                $ delay = 0.0
+                $ gap = 0.05
                 style_prefix "page"
 
                 xalign 0.5
@@ -651,19 +709,24 @@ screen file_slots(title):
 
                 spacing gui.page_spacing
 
-                textbutton _("<") action FilePagePrevious()
+                textbutton _("<") action FilePagePrevious() at animelem(delay, startx=-50, endx=0)
+                $ delay += gap
 
                 if config.has_autosave:
-                    textbutton _("{#auto_page}A") action FilePage("auto")
+                    textbutton _("{#auto_page}A") action FilePage("auto") at animelem(delay, startx=-50, endx=0)
+                    $ delay += gap
 
                 if config.has_quicksave:
-                    textbutton _("{#quick_page}Q") action FilePage("quick")
+                    textbutton _("{#quick_page}Q") action FilePage("quick") at animelem(delay, startx=-50, endx=0)
+                    $ delay += gap
 
                 ## range(1, 10) gives the numbers from 1 to 9.
                 for page in range(1, 10):
-                    textbutton "[page]" action FilePage(page)
+                    textbutton "[page]" action FilePage(page) at animelem(delay, startx=-50, endx=0)
+                    $ delay += gap
 
-                textbutton _(">") action FilePageNext()
+                textbutton _(">") action FilePageNext() at animelem(delay, startx=-50, endx=0)
+                $ delay += gap
 
 
 style page_label is gui_label
@@ -675,6 +738,8 @@ style slot_button is gui_button
 style slot_button_text is gui_button_text
 style slot_time_text is slot_button_text
 style slot_name_text is slot_button_text
+style slot_frame_width is slot_button_width
+style slot_frame_height is slot_button_height
 
 style page_label:
     xpadding 75
