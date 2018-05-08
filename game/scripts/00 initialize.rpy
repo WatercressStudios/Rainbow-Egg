@@ -1,8 +1,6 @@
 # The script of the game goes in this file.
 
-# Declare characters used by this game. The color argument colorizes the
-# name of the character.
-
+# callback=speaker is needed for mouth flaps
 define fang = Character("Fang", callback=speaker("fang"))
 define alex = Character("Alex", callback=speaker("alex"))
 

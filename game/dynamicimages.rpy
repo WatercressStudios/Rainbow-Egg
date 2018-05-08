@@ -174,9 +174,14 @@ init -50 python:
                             if part == 'optional':
                                 basedict[basepath]['optionals'].append(emote)
                             elif not part in eyesdef + mouthdef:
-                                if not part in basedict[basepath]['extraparts']:
-                                    basedict[basepath]['extraparts'][part] = []
-                                basedict[basepath]['extraparts'][part].append(emote)
+                                default_path_list = path_list[:-1] + (u'default',)
+                                if default_path_list in imglist:
+                                    devlog.info(path_list)
+                                    if not part in basedict[basepath]['extraparts']:
+                                        basedict[basepath]['extraparts'][part] = []
+                                    basedict[basepath]['extraparts'][part].append(emote)
+                                    if not emote in basedict[basepath]['emotes']:
+                                        basedict[basepath]['emotes'].append(emote)
                             else:
                                 if not part in basedict[basepath]['parts']:
                                     basedict[basepath]['parts'].append(part)
