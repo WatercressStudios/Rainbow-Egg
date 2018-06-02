@@ -327,7 +327,7 @@ init -50 python:
         if basepath is None:
             return None
 
-        base = 'base'
+        bases = None
         eyes = ('ed', 'default')
         mouth = ('md', 'default')
         extraparts = {}
@@ -337,7 +337,7 @@ init -50 python:
         i = len(basepath)
         while i < len(oldpath):
             if oldpath[i] in basedict[basepath]['bases']:
-                base = oldpath[i]
+                bases = [oldpath[i],]
             elif oldpath[i] in eyesdef:
                 eyes = oldpath[i:i+2]
                 i += 1
@@ -352,42 +352,52 @@ init -50 python:
             i += 1
         optionals = tuple(sorted(optionals))
 
-        if addOptionals:
-            for o in range(len(basedict[basepath]['optionals'])+1):
-                for ops in itertools.combinations(basedict[basepath]['optionals'], o):
-                    pathtuple = list(basepath)
-                    for layer in basedict[basepath]['layerorder']:
-                        if layer == 'base':
-                            pathtuple.append(base)
-                        elif layer == 'eyes':
-                            pathtuple += eyes
-                        elif layer == 'mouth':
-                            pathtuple += mouth
-                        elif layer in ops or layer in optionals:
-                            pathtuple.append(layer)
-                        elif layer in extraparts:
-                            pathtuple += extraparts[layer]
+        autobases = False
+        if bases is None:
+            autobases = True
+            bases = basedict[basepath]['bases']
 
-                    renpy.image(newpath+ops, ' '.join(pathtuple))
-                    if flip:
-                        renpy.image(newpath+ops+(u'flip',), flipimage(' '.join(pathtuple)))
-        else:
-            pathtuple = list(basepath)
-            for layer in basedict[basepath]['layerorder']:
-                if layer == 'base':
-                    pathtuple.append(base)
-                elif layer == 'eyes':
-                    pathtuple += eyes
-                elif layer == 'mouth':
-                    pathtuple += mouth
-                elif layer in optionals:
-                    pathtuple.append(layer)
-                elif layer in extraparts:
-                    pathtuple += extraparts[layer]
+        for base in bases:
+            newpath2 = newpath
+            if autobases and not base == 'base':
+                 newpath2 += (base,)
 
-            renpy.image(newpath, ' '.join(pathtuple))
-            if flip:
-                renpy.image(newpath+(u'flip',), flipimage(' '.join(pathtuple)))
+            if addOptionals:
+                for o in range(len(basedict[basepath]['optionals'])+1):
+                    for ops in itertools.combinations(basedict[basepath]['optionals'], o):
+                        pathtuple = list(basepath)
+                        for layer in basedict[basepath]['layerorder']:
+                            if layer == 'base':
+                                pathtuple.append(base)
+                            elif layer == 'eyes':
+                                pathtuple += eyes
+                            elif layer == 'mouth':
+                                pathtuple += mouth
+                            elif layer in ops or layer in optionals:
+                                pathtuple.append(layer)
+                            elif layer in extraparts:
+                                pathtuple += extraparts[layer]
+
+                        renpy.image(newpath2+ops, ' '.join(pathtuple))
+                        if flip:
+                            renpy.image(newpath2+ops+(u'flip',), flipimage(' '.join(pathtuple)))
+            else:
+                pathtuple = list(basepath)
+                for layer in basedict[basepath]['layerorder']:
+                    if layer == 'base':
+                        pathtuple.append(base)
+                    elif layer == 'eyes':
+                        pathtuple += eyes
+                    elif layer == 'mouth':
+                        pathtuple += mouth
+                    elif layer in optionals:
+                        pathtuple.append(layer)
+                    elif layer in extraparts:
+                        pathtuple += extraparts[layer]
+
+                renpy.image(newpath2, ' '.join(pathtuple))
+                if flip:
+                    renpy.image(newpath2+(u'flip',), flipimage(' '.join(pathtuple)))
 
     # This is set to the name of the character that is speaking, or
     # None if no character is currently speaking.

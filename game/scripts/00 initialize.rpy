@@ -44,8 +44,8 @@ label start:
 
     hide fang
     #show alex pose1 shinyarm ed scared md scared brow scared
-    show alex pose1 scared
-    #show alex scared
+    #show alex pose1 shinyarm scared
+    show alex scared shinyarm
 
     alex "You've created a new Ren'Py game."
     hide alex
