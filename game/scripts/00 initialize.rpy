@@ -36,23 +36,28 @@ label start:
     # directory.
 
     #show fang base ed default md default
-    show fang surprised flip
+    show fang surprised flip at left
 
     # These display lines of dialogue.
 
-    fang "Hello, world, and hello again."
+    say fang "Hello, world, and hello again."
 
-    hide fang
+    #hide fang
     #show alex pose1 shinyarm ed scared md scared brow scared
     #show alex pose1 shinyarm scared
-    show alex scared shinyarm
+    show alex scared shinyarm at right
 
-    alex "You've created a new Ren'Py game."
-    hide alex
+    shout alex "You've created a new Ren'Py game!!"
+    show alex:
+        xalign 0.7
 
-    show fang happy
+    shout alex "And what about from here?!?"
+    #hide alex
 
-    fang "Once you add a story, pictures, and music, you can release it to the world!"
+    show fang happy:
+        xalign 0.4
+
+    happy fang "Once you add a story, pictures, and music, you can release it to the world!"
 
     # This ends the game.
 
