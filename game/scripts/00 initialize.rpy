@@ -40,6 +40,7 @@ label start:
 
     # These display lines of dialogue.
 
+    fang "Hello, world."
     say fang "Hello, world, and hello again."
 
     #hide fang
@@ -47,7 +48,7 @@ label start:
     #show alex pose1 shinyarm scared
     show alex scared shinyarm at right
 
-    shout alex "You've created a new Ren'Py game!!"
+    say alex "You've created a new Ren'Py game."
     show alex:
         xalign 0.7
 
@@ -59,6 +60,7 @@ label start:
 
     happy fang "Once you add a story, pictures, and music, you can release it to the world!"
 
+    alex "Demo has ended."
     # This ends the game.
 
     return

@@ -117,24 +117,35 @@ style frame:
 ##
 ## https://www.renpy.org/doc/html/screen_special.html#say
 
-screen say(who, what, xalign=0.5, yalign=1.0, xflip=False, yflip=False, background="gui/speech_bubble.png"):
+screen say(who, what, show_who=True, text_bounds=None, background_bounds=None, background=Image("gui/textbox.png")):
     style_prefix "say"
 
     window:
         id "window"
-        if xflip:
-            background im.Flip(background, horizontal=True)
+        if background:
+            background background
+        if background_bounds:
+            xpos background_bounds[0]
+            ypos background_bounds[1]
+            xsize background_bounds[2]
+            ysize background_bounds[3]
+
+        if show_who and who is not None:
+            window:
+                style "namebox"
+                text who id "who"
+
+        if text_bounds:
+            text what id "what":
+                xsize text_bounds[0]
+                ysize text_bounds[1]
+                xoffset text_bounds[2]
+                yoffset text_bounds[3]
+                xalign text_bounds[4]
+                yalign text_bounds[5]
+                text_align text_bounds[6]
         else:
-            background Image(background)
-        xalign xalign
-        yalign yalign
-
-#         if who is not None:
-#             window:
-#                 style "namebox"
-#                 text who id "who"
-
-        text what id "what"
+            text what id "what"
 
 
     ## If there's a side image, display it above the text. Do not display on the
@@ -142,6 +153,9 @@ screen say(who, what, xalign=0.5, yalign=1.0, xflip=False, yflip=False, backgrou
     if not renpy.variant("small"):
         add SideImage() xalign 0.0 yalign 1.0
 
+## Make the namebox available for styling through the Character object.
+init python:
+    config.character_id_prefixes.append('namebox')
 
 style window is default
 style say_label is default
@@ -153,8 +167,12 @@ style namebox_label is say_label
 
 
 style window:
-    xsize 400
-    ysize 300
+    xalign 0.5
+    xfill True
+    yalign gui.textbox_yalign
+    ysize gui.textbox_height
+
+    background Image("gui/textbox.png", xalign=0.5, yalign=1.0)
 
 style namebox:
     xpos gui.name_xpos
@@ -172,12 +190,12 @@ style say_label:
     yalign 0.5
 
 style say_dialogue:
-    xalign 0.5
-    yalign 0.55
-    xsize 300
-    ysize 200
-    text_align 0.5
+    properties gui.text_properties("dialogue")
 
+    xpos gui.dialogue_xpos
+    xsize gui.dialogue_width
+    ypos gui.dialogue_ypos
+    line_spacing 8
 
 ## Input screen ################################################################
 ##

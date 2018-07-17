@@ -5,64 +5,76 @@
 ###############################
 
 python early:
-
     def parse_say(lex):
         who = lex.simple_expression()
         what = lex.rest()
         return (who, eval(what), None, None, False, False)
 
-    def execute_say(o):
-        who, what, xalign, yalign, xflip, yflip = o
-
-        if not xalign or not yalign:
+    def execute_generic_say(o, background, background_size, offset_size, y_range, text_bounds):
+        who, what, xpos_actual, ypos_actual, xflip, yflip = o
+        background = im.Scale(background, background_size[0], background_size[1])
+        if not xpos_actual or not ypos_actual:
             xpos, ypos, width, height = renpy.get_image_bounds(who)
-            if not xalign:
-                xalign = xpos / (renpy.config.screen_width - width)
-                if xalign > 0.2:
-                    xalign -= 0.2
+            background_size = (1.0*background_size[0]/renpy.config.screen_width, 1.0*background_size[1]/renpy.config.screen_height)
+            offset_size = (1.0*offset_size[0]/renpy.config.screen_width, 1.0*offset_size[1]/renpy.config.screen_height)
+            if not xpos_actual:
+                xpos_center = (xpos + width/2.0) / renpy.config.screen_width
+                if xpos_center - background_size[0]/2.0 - offset_size[0] > 0.0:
+                    xpos_actual = xpos_center - background_size[0]/2.0 - offset_size[0]
                 else:
-                    xalign += 0.2
+                    xpos_actual = xpos_center - background_size[0]/2.0 + offset_size[0]
                     xflip = True
-            if not yalign:
-                yalign = (ypos + height) / renpy.config.screen_height
-                if yalign < 0.5:
-                    yalign = 0.0
-                    yflip = True
-                else:
-                    yalign = 1.0
-        renpy.say(eval(who), what, show_xalign=xalign, show_yalign=yalign, show_xflip=xflip, show_yflip=yflip, show_background="gui/speech_bubble_above.png")
+            if not ypos_actual:
+                ypos_center = 1.0 * renpy.random.randint(y_range[0], y_range[1]) / renpy.config.screen_height
+                ypos_actual = ypos_center - background_size[1]/2.0
+        if xflip:
+            background = im.Flip(background, horizontal=True)
+        if yflip:
+            background = im.Flip(background, vertical=True)
+        background_bounds = xpos_actual, ypos_actual, background_size[0], background_size[1]
+        renpy.say(eval(who), what, show_show_who=False, show_text_bounds=text_bounds, show_background_bounds=background_bounds, show_background=background)
+
+    def execute_say(o):
+        background = "gui/speech_bubble_above.png"
+        background_size = (500, 300)
+        offset_size = (150, 150)
+        y_range = (650, 750)
+        
+        text_size = (380, 200)
+        text_offset = (165, 120)
+        text_align = (0.5, 0.5)
+        text_text_align = 0.5
+        text_bounds = text_size[0], text_size[1], text_offset[0], text_offset[1], text_align[0], text_align[1], text_text_align
+
+        execute_generic_say(o, background, background_size, offset_size, y_range, text_bounds)
 
     def execute_happy(o):
-        who, what, xalign, yalign, xflip, yflip = o
+        background = "gui/speech_bubble_happy_above.png"
+        background_size = (500, 300)
+        offset_size = (150, 150)
+        y_range = (650, 750)
+        
+        text_size = (380, 200)
+        text_offset = (180, 120)
+        text_align = (0.5, 0.5)
+        text_text_align = 0.5
+        text_bounds = text_size[0], text_size[1], text_offset[0], text_offset[1], text_align[0], text_align[1], text_text_align
 
-        if not xalign or not yalign:
-            xpos, ypos, width, height = renpy.get_image_bounds(who)
-            if not xalign:
-                xalign = xpos / (renpy.config.screen_width - width)
-                if xalign > 0.1:
-                    xalign -= 0.1
-                else:
-                    xalign += 0.1
-                    xflip = True
-            if not yalign:
-                yalign = (ypos + height) / renpy.config.screen_height
-                if yalign < 0.5:
-                    yalign = 0.0
-                    yflip = True
-                else:
-                    yalign = 1.0
-        renpy.say(eval(who), what, show_xalign=xalign, show_yalign=yalign, show_xflip=xflip, show_yflip=yflip, show_background="gui/speech_bubble_happy_above.png")
+        execute_generic_say(o, background, background_size, offset_size, y_range, text_bounds)
 
     def execute_shout(o):
-        who, what, xalign, yalign, xflip, yflip = o
+        background = "gui/speech_bubble_shout.png"
+        background_size = (500, 300)
+        offset_size = (0, 0)
+        y_range = (650, 750)
+        
+        text_size = (350, 200)
+        text_offset = (165, 110)
+        text_align = (0.5, 0.5)
+        text_text_align = 0.5
+        text_bounds = text_size[0], text_size[1], text_offset[0], text_offset[1], text_align[0], text_align[1], text_text_align
 
-        if not xalign or not yalign:
-            xpos, ypos, width, height = renpy.get_image_bounds(who)
-            if not xalign:
-                xalign = xpos / (renpy.config.screen_width - width)
-            if not yalign:
-                yalign = (ypos + height) / renpy.config.screen_height
-        renpy.say(eval(who), what, show_xalign=xalign, show_yalign=yalign, show_xflip=xflip, show_yflip=yflip, show_background="gui/speech_bubble_shout.png")
+        execute_generic_say(o, background, background_size, offset_size, y_range, text_bounds)
 
     def lint_say(o):
         who, what = o
