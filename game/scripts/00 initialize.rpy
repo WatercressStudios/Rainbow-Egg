@@ -41,24 +41,28 @@ label start:
     # These display lines of dialogue.
 
     fang "Hello, world."
-    say fang "Hello, world, and hello again."
+    bubble fang "...and hello again."
+
+    show fang happy:
+        xalign 0.5
+    bubble happy fang "And now at middle."
 
     #hide fang
     #show alex pose1 shinyarm ed scared md scared brow scared
     #show alex pose1 shinyarm scared
     show alex scared shinyarm at right
 
-    say alex "You've created a new Ren'Py game."
+    bubble alex "You've created a new Ren'Py game."
     show alex:
         xalign 0.7
 
-    shout alex "And what about from here?!?"
+    bubble shout alex "And what about from here?!?"
     #hide alex
 
-    show fang happy:
+    show fang default:
         xalign 0.4
 
-    happy fang "Once you add a story, pictures, and music, you can release it to the world!"
+    bubble happy fang "Once you add a story, pictures, and music, you can release it to the world!"
 
     alex "Demo has ended."
     # This ends the game.

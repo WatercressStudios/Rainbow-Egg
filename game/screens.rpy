@@ -117,36 +117,39 @@ style frame:
 ##
 ## https://www.renpy.org/doc/html/screen_special.html#say
 
-screen say(who, what, show_who=True, text_bounds=None, background_bounds=None, background=Image("gui/textbox.png")):
+screen say(who, what, show_who=True, text_params=None, bubble_params=None):
     style_prefix "say"
 
     window:
         id "window"
-        if background:
-            background background
-        if background_bounds:
-            xpos background_bounds[0]
-            ypos background_bounds[1]
-            xsize background_bounds[2]
-            ysize background_bounds[3]
+
+        if bubble_params:
+            xalign None
+            yalign None
+            xpos bubble_params[0][0]
+            ypos bubble_params[0][1]
+            xsize bubble_params[1][0]
+            ysize bubble_params[1][1]
+            background bubble_params[2]
+        else:
+            background Image("gui/textbox.png")
 
         if show_who and who is not None:
             window:
                 style "namebox"
                 text who id "who"
 
-        if text_bounds:
+        if text_params:
             text what id "what":
-                xsize text_bounds[0]
-                ysize text_bounds[1]
-                xoffset text_bounds[2]
-                yoffset text_bounds[3]
-                xalign text_bounds[4]
-                yalign text_bounds[5]
-                text_align text_bounds[6]
+                xoffset text_params[0][0]
+                yoffset text_params[0][1]
+                xsize text_params[1][0]
+                ysize text_params[1][1]
+                xalign text_params[2][0]
+                yalign text_params[2][1]
+                text_align text_params[3]
         else:
             text what id "what"
-
 
     ## If there's a side image, display it above the text. Do not display on the
     ## phone variant - there's no room.
