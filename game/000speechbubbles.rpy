@@ -70,6 +70,7 @@ python early:
         text_size = [380, 200]
         text_align = [0.5, 0.5]
         text_text_align = 0.5
+        text_offset_flipped = [None, None]
 
         # Based on what the user passed in, overwrite  the default values
         while not lex.eol():
@@ -92,6 +93,7 @@ python early:
                 bubble_offset = [300, 300]
                 bubble_y_range = [500, 600]
                 text_offset = [-3, 12]
+                text_offset_flipped = [0, 0]
             elif token == "plain":
                 bubble_background = "speechbubble/speech_bubble.png"
                 text_offset = [-3, 5]
@@ -159,14 +161,14 @@ python early:
 
         # Wrap up the params and return it to renpy
         bubble_params = bubble_pos, bubble_size, bubble_background, bubble_flip, bubble_offset, bubble_y_range
-        text_params = text_offset, text_size, text_align, text_text_align
+        text_params = text_offset, text_size, text_align, text_text_align, text_offset_flipped
         return (who, eval(what), bubble_params, text_params)
 
 
     def execute_bubble(o):
         # Unwrap all variables - there are a lot!
         who, what, bubble_params, text_params = o
-        text_offset, text_size, text_align, text_text_align = text_params
+        text_offset, text_size, text_align, text_text_align, text_offset_flipped = text_params
         bubble_pos, bubble_size, bubble_background, bubble_flip, bubble_offset, bubble_y_range = bubble_params
         think = "_think" in bubble_background
         if not who == "narrator":
@@ -242,15 +244,13 @@ python early:
 
         if think:
             who = "narrator"
-#         if bubble_flip[0]:
-#             text_offset[0] = -text_offset[0]
-#             text_align[0] = 1.0 - text_align[0]
-#         if bubble_flip[1]:
-#             text_offset[1] = -text_offset[1]
-#             text_align[1] = 1.0 - text_align[1]
+        if bubble_flip[0] and not text_offset_flipped[0] is None:
+            text_offset[0] = text_offset_flipped[0]
+        if bubble_flip[1] and not text_offset_flipped[1] is None:
+            text_offset[1] = text_offset_flipped[1]
 
         # Rewrap the text and bubble params and now send everything to "screen say"
-        text_params = text_offset, text_size, text_align, text_text_align
+        text_params = text_offset, text_size, text_align, text_text_align, text_offset_flipped
         bubble_params = bubble_pos, bubble_size, bubble_background, bubble_flip, bubble_offset, bubble_y_range
         renpy.say(eval(who), what, show_show_who=False, show_text_params=text_params, show_bubble_params=bubble_params)
 
