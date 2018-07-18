@@ -10,13 +10,11 @@ init python:
 
     # define the sprites with manual layer ordering
     #layerorder = None
-    layerorder = ['base','blush','mouth','eyes','sweat','heavysweat']
+    layerorder = ['base','blush','mouth','eyes', 'hair', 'sweat','heavysweat']
     DefineImages("sprites", overrideLayerOrder=layerorder)
 
     # manually create shortcuts to more complex expressions
-#     MapEmote('fang surprised',  'fang ed sad md surprised')
-#     MapEmote('fang happy',      'fang ec default md happy')
-#     MapEmote('alex scared',     'alex pose1 md scared ed scared blush')
+    MapEmote('war angry',  'war ed sad md pout blush')
 
 # override some default mouth flap behaviours
 # image fang md surprised     = "fang mdo surprised"
@@ -35,7 +33,7 @@ label start:
     # replace it by adding a file named "eileen happy.png" to the images
     # directory.
 
-    show war default:
+    show war angry:
         xalign 0.3
 
     # These display lines of dialogue.

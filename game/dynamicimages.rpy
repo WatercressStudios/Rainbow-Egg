@@ -96,10 +96,10 @@ init -50 python:
     mouthauto = ('md', )
 
     basedict = {}
-    def DefineImages(imageFolder, flip=True, composite=True, prepend=None, overrideCharname=None, overrideLayerOrder=None):
+    pathlist = {}
+    def DefineImages(imageFolder, flip=True, composite=True, prepend=None, overrideCharname=None, overrideLayerOrder=None, allcombinations=False):
         if composite:
             imglist = []
-            pathlist = {}
 
         excludeFirstXFolders = len(imageFolder.split('/'))
         if prepend is None:
@@ -177,7 +177,7 @@ init -50 python:
                             elif not part in eyesdef + mouthdef:
                                 default_path_list = path_list[:-1] + (u'default',)
                                 if default_path_list in imglist:
-                                    devlog.info(path_list)
+                                    #devlog.info(path_list)
                                     if not part in basedict[basepath]['extraparts']:
                                         basedict[basepath]['extraparts'][part] = []
                                     basedict[basepath]['extraparts'][part].append(emote)
@@ -266,43 +266,77 @@ init -50 python:
                 for base in basedict[basepath]['bases']:
                     size = renpy.image_size(im.Image(pathlist[basepath+(base,)]))
                     basespr = BaseCSprite(' '.join(basepath+(base,)), size)
-                    for eyes in basedict[basepath]['list']:
-                        #if not eyes[-2] in (u'e', u'ec', u'ed'):
-                        if not eyes[-2] in eyesauto:
-                            continue
-                        for mouth in basedict[basepath]['list']:
-                            #if not mouth[-2] in (u'm', u'mc', u'md', u'mdo'):
-                            if not mouth[-2] in mouthauto:
+                    if allcombinations:
+                        for eyes in basedict[basepath]['list']:
+                            #if not eyes[-2] in (u'e', u'ec', u'ed'):
+                            if not eyes[-2] in eyesauto:
                                 continue
-                            for ext in extraperms:
-                                for o in range(len(basedict[basepath]['optionals'])+1):
-                                    for ops in itertools.combinations(basedict[basepath]['optionals'], o):
-                                        layers = []
-                                        pathtuple = list(basepath)
-                                        for layer in layerorder:
-                                            if layer == 'base':
-                                                layers.append(' '.join(basepath+(base,)))
-                                                pathtuple.append(base)
-                                            elif layer == 'eyes':
-                                                layers.append(' '.join(eyes))
-                                                pathtuple += eyes[-2:]
-                                            elif layer == 'mouth':
-                                                layers.append(' '.join(mouth))
-                                                pathtuple += mouth[-2:]
-                                            elif layer in ops:
-                                                layers.append(' '.join(basepath + (u'optional', layer)))
-                                                pathtuple.append(layer)
-                                            else:
-                                                for ex in ext:
-                                                    if layer == ex[0]:
-                                                        layers.append(' '.join(basepath + ex))
-                                                        pathtuple += ex
+                            for mouth in basedict[basepath]['list']:
+                                #if not mouth[-2] in (u'm', u'mc', u'md', u'mdo'):
+                                if not mouth[-2] in mouthauto:
+                                    continue
+                                for ext in extraperms:
+                                    for o in range(len(basedict[basepath]['optionals'])+1):
+                                        for ops in itertools.combinations(basedict[basepath]['optionals'], o):
+                                            layers = []
+                                            pathtuple = list(basepath)
+                                            for layer in layerorder:
+                                                if layer == 'base':
+                                                    layers.append(' '.join(basepath+(base,)))
+                                                    pathtuple.append(base)
+                                                elif layer == 'eyes':
+                                                    layers.append(' '.join(eyes))
+                                                    pathtuple += eyes[-2:]
+                                                elif layer == 'mouth':
+                                                    layers.append(' '.join(mouth))
+                                                    pathtuple += mouth[-2:]
+                                                elif layer in ops:
+                                                    layers.append(' '.join(basepath + (u'optional', layer)))
+                                                    pathtuple.append(layer)
+                                                else:
+                                                    for ex in ext:
+                                                        if layer == ex[0]:
+                                                            layers.append(' '.join(basepath + ex))
+                                                            pathtuple += ex
 
-                                        #devlog.info(' '.join(pathtuple))
-                                        renpy.image(tuple(pathtuple), basespr(layers))
-                                        if flip:
-                                            renpy.image(tuple(pathtuple)+(u'flip',), flipimage(' '.join(pathtuple)))
+                                            #devlog.info(' '.join(pathtuple))
+                                            renpy.image(tuple(pathtuple), basespr(layers))
+                                            if flip:
+                                                renpy.image(tuple(pathtuple)+(u'flip',), flipimage(' '.join(pathtuple)))
+                    else:
+                        for emote in basedict[basepath]['emotes']:
+                            eyes = basepath+(u'ed', emote)
+                            mouth = basepath+(u'md', emote)
+                            ext = []
+                            for ex in sorted(basedict[basepath]['extraparts'].keys()):
+                                ext.append((ex, emote))
+                            for o in range(len(basedict[basepath]['optionals'])+1):
+                                for ops in itertools.combinations(basedict[basepath]['optionals'], o):
+                                    layers = []
+                                    pathtuple = list(basepath)
+                                    for layer in layerorder:
+                                        if layer == 'base':
+                                            layers.append(' '.join(basepath+(base,)))
+                                            pathtuple.append(base)
+                                        elif layer == 'eyes':
+                                            layers.append(' '.join(eyes))
+                                            pathtuple += eyes[-2:]
+                                        elif layer == 'mouth':
+                                            layers.append(' '.join(mouth))
+                                            pathtuple += mouth[-2:]
+                                        elif layer in ops:
+                                            layers.append(' '.join(basepath + (u'optional', layer)))
+                                            pathtuple.append(layer)
+                                        else:
+                                            for ex in ext:
+                                                if layer == ex[0]:
+                                                    layers.append(' '.join(basepath + ex))
+                                                    pathtuple += ex
 
+                                    #devlog.info(' '.join(pathtuple))
+                                    renpy.image(tuple(pathtuple), basespr(layers))
+                                    if flip:
+                                        renpy.image(tuple(pathtuple)+(u'flip',), flipimage(' '.join(pathtuple)))
                     # shortcuts to emotes - default base can omit base
                     for emote in basedict[basepath]['emotes']:
                         if base == u'base':
@@ -359,6 +393,9 @@ init -50 python:
             bases = basedict[basepath]['bases']
 
         for base in bases:
+            size = renpy.image_size(im.Image(pathlist[basepath+(base,)]))
+            basespr = BaseCSprite(' '.join(basepath+(base,)), size)
+
             newpath2 = newpath
             if autobases and not base == 'base':
                  newpath2 += (base,)
@@ -366,36 +403,56 @@ init -50 python:
             if addOptionals:
                 for o in range(len(basedict[basepath]['optionals'])+1):
                     for ops in itertools.combinations(basedict[basepath]['optionals'], o):
+                        layers = []
                         pathtuple = list(basepath)
                         for layer in basedict[basepath]['layerorder']:
                             if layer == 'base':
+                                layers.append(' '.join(basepath+(base,)))
                                 pathtuple.append(base)
                             elif layer == 'eyes':
+                                layers.append(' '.join(basepath+tuple(eyes)))
                                 pathtuple += eyes
                             elif layer == 'mouth':
+                                layers.append(' '.join(basepath+tuple(mouth)))
                                 pathtuple += mouth
                             elif layer in ops or layer in optionals:
+                                layers.append(' '.join(basepath + (u'optional', layer)))
                                 pathtuple.append(layer)
                             elif layer in extraparts:
+                                layers.append(' '.join(basepath + tuple(extraparts[layer])))
                                 pathtuple += extraparts[layer]
 
+                        if not renpy.has_image(tuple(pathtuple), exact=True):
+                            renpy.image(tuple(pathtuple), basespr(layers))
+                            if flip:
+                                renpy.image(tuple(pathtuple)+(u'flip',), flipimage(' '.join(pathtuple)))
                         renpy.image(newpath2+ops, ' '.join(pathtuple))
                         if flip:
                             renpy.image(newpath2+ops+(u'flip',), flipimage(' '.join(pathtuple)))
             else:
+                layers = []
                 pathtuple = list(basepath)
                 for layer in basedict[basepath]['layerorder']:
                     if layer == 'base':
+                        layers.append(' '.join(basepath+(base,)))
                         pathtuple.append(base)
                     elif layer == 'eyes':
+                        layers.append(' '.join(basepath+tuple(eyes)))
                         pathtuple += eyes
                     elif layer == 'mouth':
+                        layers.append(' '.join(basepath+tuple(mouth)))
                         pathtuple += mouth
                     elif layer in optionals:
+                        layers.append(' '.join(basepath + (u'optional', layer)))
                         pathtuple.append(layer)
                     elif layer in extraparts:
+                        layers.append(' '.join(basepath + tuple(extraparts[layer])))
                         pathtuple += extraparts[layer]
 
+                if not renpy.has_image(tuple(pathtuple), exact=True):
+                    renpy.image(tuple(pathtuple), basespr(layers))
+                    if flip:
+                        renpy.image(tuple(pathtuple)+(u'flip',), flipimage(' '.join(pathtuple)))
                 renpy.image(newpath2, ' '.join(pathtuple))
                 if flip:
                     renpy.image(newpath2+(u'flip',), flipimage(' '.join(pathtuple)))

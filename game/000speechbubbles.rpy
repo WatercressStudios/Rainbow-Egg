@@ -64,7 +64,7 @@ python early:
         bubble_background = "speechbubble/speech_bubble_above.png"
         bubble_flip = [None, None]
         bubble_offset = [150, 150]
-        bubble_y_range = [650, 750]
+        bubble_y_range = [400, 930]
         
         text_offset = [-10, 15]
         text_size = [380, 200]
@@ -85,10 +85,12 @@ python early:
                 text_offset = [-3, 12]
             elif token == "wobbly":
                 bubble_background = "speechbubble/speech_bubble_wobbly.png"
+                bubble_offset = [250, 250]
                 text_offset = [-3, 12]
             elif token == "diagonal":
                 bubble_background = "speechbubble/speech_bubble_diagonal.png"
-                bubble_offset = [250, 250]
+                bubble_offset = [300, 300]
+                bubble_y_range = [500, 600]
                 text_offset = [-3, 12]
             elif token == "plain":
                 bubble_background = "speechbubble/speech_bubble.png"
@@ -105,6 +107,8 @@ python early:
                 bubble_offset = [0, 0]
             elif token == "think":
                 bubble_background = "speechbubble/speech_bubble_think.png"
+                bubble_offset = [200, 200]
+                bubble_y_range = [350, 450]
                 text_offset = [-3, 18]
             elif token == "narrate":
                 bubble_background = "speechbubble/speech_bubble_narrate.png"
@@ -188,10 +192,27 @@ python early:
                 bubble_pos[0] = xpos_center - bubble_size[0]/2.0 + bubble_offset[0]
                 if bubble_flip[0] is None:
                     bubble_flip[0] = True
-            else:
-                # Otherwise place it on the left
-                # TODO: Have it check presence of other sprites to automatically decide     left or right placement
+            elif xpos_center + bubble_size[0]/2.0 + bubble_offset[0] > 1.0:
                 bubble_pos[0] = xpos_center - bubble_size[0]/2.0 - bubble_offset[0]
+            else:
+                left_nearest = 1.0
+                right_nearest = 1.0
+                for cha in renpy.get_showing_tags():
+                    if cha in ('bg', 'cg', who):
+                        continue
+                    xpos2, ypos2, width2, height2 = renpy.get_image_bounds(cha)
+                    xpos2_center = (xpos2 + width2/2.0) / renpy.config.screen_width
+                    if xpos2_center < xpos_center:
+                        left_nearest = min(left_nearest, xpos_center - xpos2_center)
+                    else:
+                        right_nearest = min(right_nearest, xpos2_center - xpos_center)
+                if right_nearest > left_nearest:
+                    # If bubble goes over the left edge, place it on the right
+                    bubble_pos[0] = xpos_center - bubble_size[0]/2.0 + bubble_offset[0]
+                    if bubble_flip[0] is None:
+                        bubble_flip[0] = True
+                else:
+                    bubble_pos[0] = xpos_center - bubble_size[0]/2.0 - bubble_offset[0]
             if bubble_pos[0] < 0.0:
                 bubble_pos[0] = 0.0
             elif bubble_pos[0] + bubble_size[0] > 1.0:
