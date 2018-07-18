@@ -63,16 +63,19 @@ init -100 python:
     # config.use_cpickle = False
     
     # enable logging via the 'logging' module
-    logging.basicConfig(level=logging.DEBUG, format='%(levelname)-8s %(name)-15s %(message)s')
-    devlog = logging.getLogger(" ".join([config.name, config.version]))
-    devlogfile = logging.FileHandler(os.path.join(gamedir, "devlog.txt"))
-    devlogfile.setLevel(logging.DEBUG)
-    devlog.addHandler(devlogfile)
-    devlog.critical("\n--- launch game ---")
-    fm = logging.Formatter('%(levelname)-8s %(name)-15s %(message)s')
-    devlogfile.setFormatter(fm)
-    del fm
-    devlog.info("Game directory: %s" % gamedir)
+    try:
+        logging.basicConfig(level=logging.DEBUG, format='%(levelname)-8s %(name)-15s %(message)s')
+        devlog = logging.getLogger(" ".join([config.name, config.version]))
+        devlogfile = logging.FileHandler(os.path.join(gamedir, "devlog.txt"))
+        devlogfile.setLevel(logging.DEBUG)
+        devlog.addHandler(devlogfile)
+        devlog.critical("\n--- launch game ---")
+        fm = logging.Formatter('%(levelname)-8s %(name)-15s %(message)s')
+        devlogfile.setFormatter(fm)
+        del fm
+        devlog.info("Game directory: %s" % gamedir)
+    except:
+        devlog.removeHandler(devlogfile)
 
     def pretty(d, indent=0):
         if isinstance(d, list):

@@ -78,7 +78,7 @@ python early:
                 bubble_background = "speechbubble/speech_bubble_shout.png"
                 bubble_size = [550, 300]
                 bubble_offset = [0, 0]
-                text_offset = [-20, 5]
+                text_offset = [8, 5]
                 text_size = [350, 200]
             elif token == "happy":
                 bubble_background = "speechbubble/speech_bubble_happy.png"
@@ -99,7 +99,7 @@ python early:
             elif token == "weird":
                 bubble_background = "speechbubble/speech_bubble_weird.png"
                 bubble_size = [550, 300]
-                text_offset = [-10, 15]
+                text_offset = [0, 15]
                 bubble_offset = [0, 0]
             elif token == "whisper":
                 bubble_background = "speechbubble/speech_bubble_whisper.png"
@@ -166,12 +166,16 @@ python early:
     def execute_bubble(o):
         # Unwrap all variables - there are a lot!
         who, what, bubble_params, text_params = o
+        text_offset, text_size, text_align, text_text_align = text_params
         bubble_pos, bubble_size, bubble_background, bubble_flip, bubble_offset, bubble_y_range = bubble_params
         think = "_think" in bubble_background
         if not who == "narrator":
             xpos, ypos, width, height = renpy.get_image_bounds(who)
 
         # Making copies so they don't overwrite the originals, which may still be needed
+        text_offset = list(text_offset)
+        text_size = list(text_size)
+        text_align = list(text_align)
         bubble_pos = list(bubble_pos)
         bubble_size = list(bubble_size)
         bubble_background = Image(bubble_background)
@@ -193,8 +197,10 @@ python early:
                 if bubble_flip[0] is None:
                     bubble_flip[0] = True
             elif xpos_center + bubble_size[0]/2.0 + bubble_offset[0] > 1.0:
+                # If bubble goes over the right edge, place it on the left
                 bubble_pos[0] = xpos_center - bubble_size[0]/2.0 - bubble_offset[0]
             else:
+                # Decide based on other characters on screen
                 left_nearest = 1.0
                 right_nearest = 1.0
                 for cha in renpy.get_showing_tags():
@@ -207,11 +213,12 @@ python early:
                     else:
                         right_nearest = min(right_nearest, xpos2_center - xpos_center)
                 if right_nearest > left_nearest:
-                    # If bubble goes over the left edge, place it on the right
+                    # If character on the left is nearer, put speech bubble on the right
                     bubble_pos[0] = xpos_center - bubble_size[0]/2.0 + bubble_offset[0]
                     if bubble_flip[0] is None:
                         bubble_flip[0] = True
                 else:
+                    # Otherwise default to left
                     bubble_pos[0] = xpos_center - bubble_size[0]/2.0 - bubble_offset[0]
             if bubble_pos[0] < 0.0:
                 bubble_pos[0] = 0.0
@@ -233,9 +240,17 @@ python early:
         if bubble_flip[1]:
             bubble_background = im.Flip(bubble_background, vertical=True)
 
-        # Rewrap the bubble params and now send everything to "screen say"
         if think:
             who = "narrator"
+#         if bubble_flip[0]:
+#             text_offset[0] = -text_offset[0]
+#             text_align[0] = 1.0 - text_align[0]
+#         if bubble_flip[1]:
+#             text_offset[1] = -text_offset[1]
+#             text_align[1] = 1.0 - text_align[1]
+
+        # Rewrap the text and bubble params and now send everything to "screen say"
+        text_params = text_offset, text_size, text_align, text_text_align
         bubble_params = bubble_pos, bubble_size, bubble_background, bubble_flip, bubble_offset, bubble_y_range
         renpy.say(eval(who), what, show_show_who=False, show_text_params=text_params, show_bubble_params=bubble_params)
 
