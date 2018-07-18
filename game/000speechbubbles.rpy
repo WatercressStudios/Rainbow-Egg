@@ -1,7 +1,7 @@
 ###############################
 #
-# COPY AND REPLACE THE "SCREEN SAY" FUNCTINO BELOW IN SCREENS.RPY
-# ALSO, MIGHT WANT TO CONSIDER USING THE ACTION MAN FONT WITH LINE SPACING 8
+# COPY AND REPLACE THE "SCREEN SAY" FUNCTION BELOW IN SCREENS.RPY
+# ALSO, MIGHT WANT TO CONSIDER USING THE ACTION MAN FONT WITH LINE SPACING 10
 #
 # screen say(who, what, show_who=True, text_params=None, bubble_params=None):
 #     style_prefix "say"
@@ -81,44 +81,74 @@ python early:
                 text_offset = [-20, 5]
                 text_size = [350, 200]
             elif token == "happy":
-                bubble_background = "speechbubble/speech_bubble_happy_above.png"        
+                bubble_background = "speechbubble/speech_bubble_happy.png"
                 text_offset = [-3, 12]
-            elif token == "shake":
-                pass
+            elif token == "wobbly":
+                bubble_background = "speechbubble/speech_bubble_wobbly.png"
+                text_offset = [-3, 12]
+            elif token == "diagonal":
+                bubble_background = "speechbubble/speech_bubble_diagonal.png"
+                bubble_offset = [250, 250]
+                text_offset = [-3, 12]
+            elif token == "plain":
+                bubble_background = "speechbubble/speech_bubble.png"
+                text_offset = [-3, 5]
+                bubble_offset = [0, 0]
+            elif token == "weird":
+                bubble_background = "speechbubble/speech_bubble_weird.png"
+                bubble_size = [550, 300]
+                text_offset = [-10, 15]
+                bubble_offset = [0, 0]
             elif token == "whisper":
-                pass
+                bubble_background = "speechbubble/speech_bubble_whisper.png"
+                text_offset = [-3, 12]
+                bubble_offset = [0, 0]
             elif token == "think":
-                pass
+                bubble_background = "speechbubble/speech_bubble_think.png"
+                text_offset = [-3, 18]
+            elif token == "narrate":
+                bubble_background = "speechbubble/speech_bubble_narrate.png"
+                bubble_size = [450, 600]
+                bubble_offset = [0, 0]
+                text_offset = [-5, 0]
+                text_size = [380, 530]
             elif token == "xflip":
                 bubble_flip[0] = True
             elif token == "yflip":
                 bubble_flip[1] = True
             elif token == "xpos":
-                bubble_pos[0] = float(lex.simple_expression())
+                bubble_pos[0] = float(lex.simple_expression().strip("\"'"))
                 if bubble_pos[0] > 1.0:
                     bubble_pos[0] = int(bubble_pos[0])
             elif token == "ypos":
-                bubble_pos[1] = float(lex.simple_expression())
+                bubble_pos[1] = float(lex.simple_expression().strip("\"'"))
                 if bubble_pos[1] > 1.0:
                     bubble_pos[1] = int(bubble_pos[1])
             elif token == "xalign":
-                bubble_pos[0] = int(float(lex.simple_expression()) * (renpy.config.screen_width - bubble_size[0]))
+                bubble_pos[0] = int(float(lex.simple_expression().strip("\"'")) * (renpy.config.screen_width - bubble_size[0]))
             elif token == "yalign":
-                bubble_pos[1] = int(float(lex.simple_expression()) * (renpy.config.screen_height - bubble_size[1]))
+                bubble_pos[1] = int(float(lex.simple_expression().strip("\"'")) * (renpy.config.screen_height - bubble_size[1]))
             elif token == "xscale":
-                scale = float(lex.simple_expression())
+                scale = float(lex.simple_expression().strip("\"'"))
                 bubble_size[0] = int(scale * bubble_size[0])
                 text_size[0] = int(scale * text_size[0])
             elif token == "yscale":
-                scale = float(lex.simple_expression())
+                scale = float(lex.simple_expression().strip("\"'"))
                 bubble_size[1] = int(scale * bubble_size[1])
                 text_size[1] = int(scale * text_size[1])
             elif token == "scale":
-                scale = float(lex.simple_expression())
+                scale = float(lex.simple_expression().strip("\"'"))
                 bubble_size[0] = int(scale * bubble_size[0])
                 text_size[0] = int(scale * text_size[0])
                 bubble_size[1] = int(scale * bubble_size[1])
                 text_size[1] = int(scale * text_size[1])
+            elif lex.eol():
+                who = "narrator"
+                if bubble_pos[0] is None:
+                    bubble_pos[0] = renpy.config.screen_width - bubble_size[0]
+                if bubble_pos[1] is None:
+                    bubble_pos[1] = 0
+                what = token
             else:
                 who = token
                 what = lex.rest()
@@ -128,11 +158,14 @@ python early:
         text_params = text_offset, text_size, text_align, text_text_align
         return (who, eval(what), bubble_params, text_params)
 
+
     def execute_bubble(o):
         # Unwrap all variables - there are a lot!
         who, what, bubble_params, text_params = o
         bubble_pos, bubble_size, bubble_background, bubble_flip, bubble_offset, bubble_y_range = bubble_params
-        xpos, ypos, width, height = renpy.get_image_bounds(who)
+        think = "_think" in bubble_background
+        if not who == "narrator":
+            xpos, ypos, width, height = renpy.get_image_bounds(who)
 
         # Making copies so they don't overwrite the originals, which may still be needed
         bubble_pos = list(bubble_pos)
@@ -172,6 +205,8 @@ python early:
             bubble_background = im.Flip(bubble_background, vertical=True)
 
         # Rewrap the bubble params and now send everything to "screen say"
+        if think:
+            who = "narrator"
         bubble_params = bubble_pos, bubble_size, bubble_background, bubble_flip, bubble_offset, bubble_y_range
         renpy.say(eval(who), what, show_show_who=False, show_text_params=text_params, show_bubble_params=bubble_params)
 

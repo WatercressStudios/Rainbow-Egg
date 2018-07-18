@@ -36,33 +36,36 @@ label start:
     # directory.
 
     #show fang base ed default md default
-    show fang surprised
+    show fang default at left
 
     # These display lines of dialogue.
 
     fang "Hello, world."
     bubble fang "...and hello again."
+    bubble scale 1.5 fang "Make much bigger bubbles if there's lot to say..."
+    bubble scale 0.6 fang "...or smaller ones."
+    bubble narrate "This is a narration text for the scene. It's not an active thought of the character, but more like an inner monologue of the main character."
+    bubble think fang "A thinking bubble would be more like this."
+    bubble whisper fang "There's also a whisper bubble. Shh..."
 
-    show fang happy:
-        xalign 0.5
-    bubble happy scale 0.8 fang "And now at middle."
+    show fang happy
+    bubble happy fang "Or a happy, excited bubble!"
 
     #hide fang
     #show alex pose1 shinyarm ed scared md scared brow scared
     #show alex pose1 shinyarm scared
     show alex scared shinyarm at right
 
-    bubble alex "You've created a new Ren'Py game."
-    show alex:
-        xalign 0.7
-
-    bubble shout alex "And what about from here?!?"
+    bubble shout alex "Which is different from a shouty bubble!"
+    bubble wobbly alex "There's also the wobbly bubble, for shaky voices..."
+    bubble weird alex "Which is different from the supernaturally weird bubble..."
     #hide alex
 
-    show fang default:
-        xalign 0.4
-
-    bubble happy fang "Once you add a story, pictures, and music, you can release it to the world!"
+    bubble diagonal fang "There's also bubbles with extra diagonal arrowheads..."
+    bubble plain alex "...and bubbles with no arrowheads."
+    bubble diagonal xalign 0.4 yalign 0.6 alex "You can put the bubbles anywhere, instead of having it folow a character..."
+    bubble diagonal xflip yflip xalign 0.6 yalign 0.4 fang "...flip it both vertically and horizontally AND choose a custom position."
+    bubble alex "Or you chould just let the code decide for you."
 
     alex "Demo has ended."
     # This ends the game.

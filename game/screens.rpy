@@ -157,6 +157,7 @@ screen say(who, what, show_who=True, text_params=None, bubble_params=None):
                     xalign text_params[2][0]
                     yalign text_params[2][1]
                     text_align text_params[3]
+                    line_spacing 10
         else:
             text what id "what"
 
@@ -207,7 +208,6 @@ style say_dialogue:
     xpos gui.dialogue_xpos
     xsize gui.dialogue_width
     ypos gui.dialogue_ypos
-    line_spacing 8
 
 ## Input screen ################################################################
 ##
