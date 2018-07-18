@@ -66,11 +66,11 @@ python early:
         bubble_offset = [150, 150]
         bubble_y_range = [400, 930]
         
-        text_offset = [-10, 15]
+        text_offset = [-10, 17]
         text_size = [380, 200]
         text_align = [0.5, 0.5]
         text_text_align = 0.5
-        text_offset_flipped = [None, None]
+        text_offset_flipped = [0, None]
 
         # Based on what the user passed in, overwrite  the default values
         while not lex.eol():
@@ -80,14 +80,17 @@ python early:
                 bubble_size = [550, 300]
                 bubble_offset = [0, 0]
                 text_offset = [8, 5]
+                text_offset_flipped = [None, None]
                 text_size = [350, 200]
             elif token == "happy":
                 bubble_background = "speechbubble/speech_bubble_happy.png"
                 text_offset = [-3, 12]
+                text_offset_flipped = [None, None]
             elif token == "wobbly":
                 bubble_background = "speechbubble/speech_bubble_wobbly.png"
                 bubble_offset = [250, 250]
                 text_offset = [-3, 12]
+                text_offset_flipped = [None, None]
             elif token == "diagonal":
                 bubble_background = "speechbubble/speech_bubble_diagonal.png"
                 bubble_offset = [300, 300]
@@ -97,26 +100,31 @@ python early:
             elif token == "plain":
                 bubble_background = "speechbubble/speech_bubble.png"
                 text_offset = [-3, 5]
+                text_offset_flipped = [None, None]
                 bubble_offset = [0, 0]
             elif token == "weird":
                 bubble_background = "speechbubble/speech_bubble_weird.png"
                 bubble_size = [550, 300]
                 text_offset = [0, 15]
+                text_offset_flipped = [None, None]
                 bubble_offset = [0, 0]
             elif token == "whisper":
                 bubble_background = "speechbubble/speech_bubble_whisper.png"
                 text_offset = [-3, 12]
+                text_offset_flipped = [None, None]
                 bubble_offset = [0, 0]
             elif token == "think":
                 bubble_background = "speechbubble/speech_bubble_think.png"
                 bubble_offset = [200, 200]
                 bubble_y_range = [350, 450]
                 text_offset = [-3, 18]
+                text_offset_flipped = [None, None]
             elif token == "narrate":
                 bubble_background = "speechbubble/speech_bubble_narrate.png"
                 bubble_size = [450, 600]
                 bubble_offset = [0, 0]
                 text_offset = [-5, 0]
+                text_offset_flipped = [None, None]
                 text_size = [380, 530]
             elif token == "xflip":
                 bubble_flip[0] = True
