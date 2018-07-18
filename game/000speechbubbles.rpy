@@ -192,11 +192,19 @@ python early:
                 # Otherwise place it on the left
                 # TODO: Have it check presence of other sprites to automatically decide     left or right placement
                 bubble_pos[0] = xpos_center - bubble_size[0]/2.0 - bubble_offset[0]
+            if bubble_pos[0] < 0.0:
+                bubble_pos[0] = 0.0
+            elif bubble_pos[0] + bubble_size[0] > 1.0:
+                bubble_pos[0] = 1.0 - bubble_size[0]
 
         # Automatically determine ypos of bubble if not set
         if bubble_pos[1] is None:
             ypos_center = 1.0 * renpy.random.randint(bubble_y_range[0], bubble_y_range[1]) / renpy.config.screen_height
             bubble_pos[1] = ypos_center - bubble_size[1]/2.0
+            if bubble_pos[1] < 0.0:
+                bubble_pos[1] = 0.0
+            elif bubble_pos[1] + bubble_size[1] > 1.0:
+                bubble_pos[1] = 1.0 - bubble_size[1]
 
         # Apply the flips on the background
         if bubble_flip[0]:
