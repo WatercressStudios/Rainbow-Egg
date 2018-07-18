@@ -140,14 +140,23 @@ screen say(who, what, show_who=True, text_params=None, bubble_params=None):
                 text who id "who"
 
         if text_params:
-            text what id "what":
-                xoffset text_params[0][0]
-                yoffset text_params[0][1]
-                xsize text_params[1][0]
-                ysize text_params[1][1]
-                xalign text_params[2][0]
-                yalign text_params[2][1]
-                text_align text_params[3]
+            window:
+                pos (None, None)
+                align (None, None)
+                offset (None, None)
+                xsize None
+                ysize None
+                xfill True
+                yfill True
+                background None
+                text what id "what":
+                    xoffset text_params[0][0]
+                    yoffset text_params[0][1]
+                    xsize text_params[1][0]
+                    ysize text_params[1][1]
+                    xalign text_params[2][0]
+                    yalign text_params[2][1]
+                    text_align text_params[3]
         else:
             text what id "what"
 

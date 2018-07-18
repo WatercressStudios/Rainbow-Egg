@@ -36,7 +36,7 @@ label start:
     # directory.
 
     #show fang base ed default md default
-    show fang surprised flip at left
+    show fang surprised
 
     # These display lines of dialogue.
 
@@ -45,7 +45,7 @@ label start:
 
     show fang happy:
         xalign 0.5
-    bubble happy fang "And now at middle."
+    bubble happy scale 0.8 fang "And now at middle."
 
     #hide fang
     #show alex pose1 shinyarm ed scared md scared brow scared

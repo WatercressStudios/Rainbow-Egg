@@ -11,6 +11,7 @@
 # 
 #         if bubble_params:
 #             xalign None
+#             yalign None
 #             xpos bubble_params[0][0]
 #             ypos bubble_params[0][1]
 #             xsize bubble_params[1][0]
@@ -25,14 +26,23 @@
 #                 text who id "who"
 # 
 #         if text_params:
-#             text what id "what":
-#                 xoffset text_params[0][0]
-#                 yoffset text_params[0][1]
-#                 xsize text_params[1][0]
-#                 ysize text_params[1][1]
-#                 xalign text_params[2][0]
-#                 yalign text_params[2][1]
-#                 text_align text_params[3]
+#             window:
+#                 pos (None, None)
+#                 align (None, None)
+#                 offset (None, None)
+#                 xsize None
+#                 ysize None
+#                 xfill True
+#                 yfill True
+#                 background None
+#                 text what id "what":
+#                     xoffset text_params[0][0]
+#                     yoffset text_params[0][1]
+#                     xsize text_params[1][0]
+#                     ysize text_params[1][1]
+#                     xalign text_params[2][0]
+#                     yalign text_params[2][1]
+#                     text_align text_params[3]
 #         else:
 #             text what id "what"
 # 
@@ -56,7 +66,7 @@ python early:
         bubble_offset = [150, 150]
         bubble_y_range = [650, 750]
         
-        text_offset = [175, 122]
+        text_offset = [-10, 15]
         text_size = [380, 200]
         text_align = [0.5, 0.5]
         text_text_align = 0.5
@@ -68,11 +78,11 @@ python early:
                 bubble_background = "speechbubble/speech_bubble_shout.png"
                 bubble_size = [550, 300]
                 bubble_offset = [0, 0]
-                text_offset = [185, 115]
+                text_offset = [-20, 5]
                 text_size = [350, 200]
             elif token == "happy":
                 bubble_background = "speechbubble/speech_bubble_happy_above.png"        
-                text_offset = [180, 122]
+                text_offset = [-3, 12]
             elif token == "shake":
                 pass
             elif token == "whisper":
@@ -91,27 +101,24 @@ python early:
                 bubble_pos[1] = float(lex.simple_expression())
                 if bubble_pos[1] > 1.0:
                     bubble_pos[1] = int(bubble_pos[1])
+            elif token == "xalign":
+                bubble_pos[0] = int(float(lex.simple_expression()) * (renpy.config.screen_width - bubble_size[0]))
+            elif token == "yalign":
+                bubble_pos[1] = int(float(lex.simple_expression()) * (renpy.config.screen_height - bubble_size[1]))
             elif token == "xscale":
-                # TODO: Fix scaling issues
                 scale = float(lex.simple_expression())
                 bubble_size[0] = int(scale * bubble_size[0])
                 text_size[0] = int(scale * text_size[0])
-                text_offset[0] = int(scale * text_offset[0])
             elif token == "yscale":
-                # TODO: Fix scaling issues
                 scale = float(lex.simple_expression())
                 bubble_size[1] = int(scale * bubble_size[1])
                 text_size[1] = int(scale * text_size[1])
-                text_offset[1] = int(scale * text_offset[1])
             elif token == "scale":
-                # TODO: Fix scaling issues
                 scale = float(lex.simple_expression())
                 bubble_size[0] = int(scale * bubble_size[0])
                 text_size[0] = int(scale * text_size[0])
-                text_offset[0] = int(scale * text_offset[0])
                 bubble_size[1] = int(scale * bubble_size[1])
                 text_size[1] = int(scale * text_size[1])
-                text_offset[1] = int(scale * text_offset[1])
             else:
                 who = token
                 what = lex.rest()
