@@ -157,6 +157,7 @@ screen say(who, what, show_who=True, text_params=None, bubble_params=None):
                     xalign text_params[2][0]
                     yalign text_params[2][1]
                     text_align text_params[3]
+                    font "speechbubble/Action Man.ttf"
                     line_spacing 10
         else:
             text what id "what"
