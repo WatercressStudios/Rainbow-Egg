@@ -7,6 +7,7 @@ define paz = Character("Paz", callback=speaker("paz"))
 init python:
     # define the BGs
     DefineImages('bgs', prepend='bg')
+    DefineImages('mainmenu', prepend='mm')
 
     # define the sprites with manual layer ordering
     #layerorder = None
