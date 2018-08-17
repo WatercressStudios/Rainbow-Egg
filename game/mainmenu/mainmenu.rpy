@@ -25,6 +25,7 @@ image continue_button:
     repeat
 
 screen main_menu_buttons:
+    layer "overlay"
     imagebutton action Null:
         align (0.99, 0.5)
         idle "start_button"
@@ -37,14 +38,17 @@ screen main_menu_buttons:
 
 label main_menu:
     scene black
-    scene mm background with Dissolve(1.0):
+    show mm background:
         align (0.25, 0.53)
-
+        alpha 0
+        linear 1.0 alpha 1.0
+    show mm vignette onlayer overlay
     call screen main_menu_buttons
 
 label main_menu_start:
     show mm background:
         ease 1.5 align (1.0, 0.605) zoom 1.25
-    pause 1.5
+    show mm vignette onlayer overlay
+    hide mm vignette onlayer overlay with Dissolve(1.5)
     scene bg computerlab with Dissolve(0.5):
     return
