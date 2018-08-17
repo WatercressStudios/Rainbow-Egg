@@ -64,25 +64,25 @@ screen continue_buttons:
 
 label settings_menu:
     show mm background:
-        ease 1.5 align (0.3, 0.0) zoom 1.1
+        ease 1 align (0.3, 0.0) zoom 1.1
     show mm vignette onlayer custommenu
-    $ renpy.pause(1.5, hard=True)
+    $ renpy.pause(1, hard=True)
     hide mm vignette onlayer custommenu
     call screen settings_buttons
 
 label continue_menu:
     show mm background:
-        ease 1.5 align (0.1, 1.0) zoom 1.25
+        ease 1 align (0.1, 1.0) zoom 1.25
     show mm vignette onlayer custommenu
-    $ renpy.pause(1.5, hard=True)
+    $ renpy.pause(1, hard=True)
     hide mm vignette onlayer custommenu
     call screen continue_buttons
 
 label back_main_menu:
     show mm background:
-        ease 1.5 align (0.25, 0.53) zoom 1
+        ease 1 align (0.25, 0.53) zoom 1
     show mm vignette onlayer custommenu
-    $ renpy.pause(1.5, hard=True)
+    $ renpy.pause(1, hard=True)
     hide mm vignette onlayer custommenu
     call screen main_menu_buttons
 
