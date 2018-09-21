@@ -3,9 +3,13 @@
 # callback=speaker is needed for mouth flaps
 define war = Character("Warren", callback=speaker("war"))
 define paz = Character("Paz", callback=speaker("paz"))
+define mel = Character("Mel", callback=speaker("mel"))
+define josh = Character("Josh", callback=speaker("josh"))
+define mom = Character("Mom", callback=speaker("mom"))
 
 init python:
     # define the BGs
+    DefineImages('cgs')
     DefineImages('bgs', prepend='bg')
     DefineImages('mainmenu', prepend='mm')
 
@@ -24,11 +28,14 @@ init python:
 # The game starts here.
 
 label start:
+    jump day1
+
+label demo:
     # Show a background. This uses a placeholder by default, but you can
     # add a file (named either "bg room.png" or "bg room.jpg") to the
     # images directory to show it.
 
-    scene bg computerlab
+    scene bg twins
 
     # This shows a character sprite. A placeholder is used, but you can
     # replace it by adding a file named "eileen happy.png" to the images
@@ -36,14 +43,44 @@ label start:
 
     show war angry:
         xalign 0.3
+    show paz:
+        xalign 0.7
 
     # These display lines of dialogue.
-
     war "Hello, world."
     bubble war "This time with a bubble!"
     bubble scale 1.5 war "Make much bigger bubbles if there's lot to say..."
     bubble scale 0.6 war "...or smaller ones."
+
+    show war:
+        ease 0.5 xalign 0.5
+    pause 0.5
+    menu:
+        "Minor choice number 1.":
+            show war:
+                ease 0.5 xalign 0.3
+            pause 0.5
+            bubble war "I picked choice number 1."
+
+        "Minor choice number 2.":
+            show war:
+                ease 0.5 xalign 0.3
+            pause 0.5
+            bubble war "I picked choice number 2."
+
     bubble narrate "This is a narration text for the scene. It's not an active thought of the character, but more like an inner monologue of the main character."
+
+    show war:
+        ease 0.5 xalign 0.5
+    show josh_classroom:
+        xpos -1.0
+        ease 0.5 xpos -0.65
+    show mel_computerlab:
+        xpos 1.0
+        ease 0.5 xpos 0.65
+    pause 0.5
+    bubble think war "Major choice...Josh or Mel?"
+
     bubble think war "A thinking bubble would be more like this. Notice the mouth doesn't move here..."
     bubble whisper war "There's also a whisper bubble. Shh..."
 

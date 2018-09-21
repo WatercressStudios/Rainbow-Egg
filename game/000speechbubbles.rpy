@@ -5,10 +5,10 @@
 #
 # screen say(who, what, show_who=True, text_params=None, bubble_params=None):
 #     style_prefix "say"
-# 
+#
 #     window:
 #         id "window"
-# 
+#
 #         if bubble_params:
 #             xalign None
 #             yalign None
@@ -19,12 +19,12 @@
 #             background bubble_params[2]
 #         else:
 #             background Image("gui/textbox.png")
-# 
+#
 #         if show_who and who is not None:
 #             window:
 #                 style "namebox"
 #                 text who id "who"
-# 
+#
 #         if text_params:
 #             window:
 #                 pos (None, None)
@@ -47,12 +47,26 @@
 #                     line_spacing 10
 #         else:
 #             text what id "what"
-# 
+#
 #     ## If there's a side image, display it above the text. Do not display on the
 #     ## phone variant - there's no room.
 #     if not renpy.variant("small"):
 #         add SideImage() xalign 0.0 yalign 1.0
 #
+
+image think_button:
+    "speechbubble/speech_bubble_think.png"
+    pause 0.2
+    "speechbubble/speech_bubble_think_2.png"
+    pause 0.2
+    repeat
+
+image think_button_flip:
+    im.Flip("speechbubble/speech_bubble_think.png", horizontal=True)
+    pause 0.2
+    im.Flip("speechbubble/speech_bubble_think_2.png", horizontal=True)
+    pause 0.2
+    repeat
 
 python early:
 
@@ -67,7 +81,7 @@ python early:
         bubble_flip = [None, None]
         bubble_offset = [150, 150]
         bubble_y_range = [400, 930]
-        
+
         text_offset = [-10, 17]
         text_size = [380, 200]
         text_align = [0.5, 0.5]
@@ -277,4 +291,3 @@ python early:
             renpy.error(tte)
 
     renpy.register_statement("bubble", parse=parse_bubble, execute=execute_bubble, lint=lint_bubble)
-

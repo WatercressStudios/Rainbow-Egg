@@ -3,6 +3,10 @@
 init python:
     config.layers += [ 'custommenu' ]
 
+image mm vignette:
+    alpha 0.9
+    "mainmenu/vignette.png"
+
 image start_button:
     zoom 0.8
     "mainmenu/start_button_1.png"
@@ -99,5 +103,5 @@ label main_menu_start:
         ease 1.5 align (1.0, 0.605) zoom 1.25
     show mm vignette onlayer custommenu
     hide mm vignette onlayer custommenu with Dissolve(1.5)
-    scene bg computerlab with Dissolve(0.5):
+    scene bg twins with Dissolve(0.5):
     return

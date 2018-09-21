@@ -17,13 +17,13 @@ init:
                 ShowMenuWrapper.screen_changed = not ShowMenuWrapper.current_screen == self.screen
                 super(ShowMenuWrapper, self).__call__()
                 ShowMenuWrapper.current_screen = self.screen
-                
+
 
     transform animelem(delay=0.0, startx=0.0, endx=50.0, starty=0.0, endy=0.0, starta=0.0, enda=1.0, startzoom=1.0, endzoom=1.0, time=0.5):
         xoffset startx yoffset starty alpha starta zoom startzoom
         pause delay
         ease time xoffset endx yoffset endy zoom endzoom alpha enda
-        
+
         on replaced:
             ease time xoffset startx yoffset starty zoom startzoom alpha starta
 
@@ -132,7 +132,10 @@ screen say(who, what, show_who=True, text_params=None, bubble_params=None):
             ysize bubble_params[1][1]
             background bubble_params[2]
         else:
-            background Image("gui/textbox.png")
+            if what == None or what == "":
+                background None
+            else:
+                background Image("gui/textbox.png")
 
         if show_who and who is not None:
             window:
@@ -256,9 +259,43 @@ style input:
 screen choice(items):
     style_prefix "choice"
 
-    vbox:
+    # vbox:
+    #     for i in items:
+    #         textbutton i.caption action i.action
+    hbox:
+        $ ind = 0
         for i in items:
-            textbutton i.caption action i.action
+            $ ind += 1
+            button action i.action:
+                xalign None
+                yalign None
+                xpos float(ind) / (len(items) + 1.0) + 0.5
+                ypos 1.5
+                xsize 500
+                ysize 300
+                if ind <= len(items)/2.0:
+                    background "think_button"
+                else:
+                    background "think_button_flip"
+                window:
+                    pos (None, None)
+                    align (None, None)
+                    offset (None, None)
+                    xsize None
+                    ysize None
+                    xfill True
+                    yfill True
+                    background None
+                    text i.caption:
+                        xoffset -50
+                        yoffset 18
+                        xsize 350
+                        ysize 200
+                        xalign 0.5
+                        yalign 0.5
+                        text_align 0.5
+                        font "speechbubble/Action Man.ttf"
+                        line_spacing 10
 
 
 ## When this is true, menu captions will be spoken by the narrator. When false,
@@ -1552,7 +1589,3 @@ style slider_pref_vbox:
 style slider_pref_slider:
     variant "small"
     xsize 900
-
-
-
-
