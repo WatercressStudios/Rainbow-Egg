@@ -61,7 +61,7 @@ init -100 python:
 
     # Game may bug out on saving, in such case, comment should be removed
     # config.use_cpickle = False
-    
+
     # enable logging via the 'logging' module
     try:
         logging.basicConfig(level=logging.DEBUG, format='%(levelname)-8s %(name)-15s %(message)s')
@@ -75,7 +75,18 @@ init -100 python:
         del fm
         devlog.info("Game directory: %s" % gamedir)
     except:
-        devlog.removeHandler(devlogfile)
+        class DevlogStub:
+            def debug(self, msg, *agrs, **kwargs):
+                print str
+            def info(self, msg, *agrs, **kwargs):
+                print str
+            def warning(self, msg, *agrs, **kwargs):
+                print str
+            def error(self, msg, *agrs, **kwargs):
+                print str
+            def critical(self, msg, *agrs, **kwargs):
+                print str
+        devlog = DevlogStub()
 
     def pretty(d, indent=0):
         if isinstance(d, list):
