@@ -16,19 +16,21 @@ init python:
     # define the sprites with manual layer ordering
     #layerorder = None
     layerorder = ['base','blush','mouth','eyes', 'hair', 'sweat','heavysweat']
-    DefineImages("sprites", overrideLayerOrder=layerorder)
+    DefineImages("sprites", composite=True, overrideLayerOrder=layerorder)
 
     # manually create shortcuts to more complex expressions
-    MapEmote('war angry',  'war ed sad md pout blush')
+    MapEmote('war bigsmile',  'war ec_bigsmile blush')
 
 # override some default mouth flap behaviours
-# image fang md surprised     = "fang mdo surprised"
-# image alex pose1 md scared  = FlapMouth("alex pose1 m scared", "alex pose1 mc bitter")
+image war_md_default = "war_mdo_default"
+image war_md_bigsmile = FlapMouth("war_mc_smug", "war_m_bigsmile")
+
 
 # The game starts here.
 
 label start:
-    jump day1
+    jump demo
+    #jump day1
 
 label demo:
     # Show a background. This uses a placeholder by default, but you can
@@ -41,7 +43,7 @@ label demo:
     # replace it by adding a file named "eileen happy.png" to the images
     # directory.
 
-    show war angry:
+    show war bigsmile blush:
         xalign 0.3
     show paz:
         xalign 0.7

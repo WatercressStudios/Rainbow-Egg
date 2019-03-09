@@ -25,7 +25,7 @@ init:
         .2
         repeat
 
-    transform flipimage:
+    transform flip:
         xzoom -1.0
 
     transform centerleft:
@@ -111,7 +111,8 @@ init -50 python:
 
     basedict = {}
     pathlist = {}
-    def DefineImages(imageFolder, flip=True, composite=True, prepend=None, overrideCharname=None, overrideLayerOrder=None, allcombinations=False):
+    spritedict = {}
+    def DefineImages(imageFolder, composite=False, prepend=None, overrideCharname=None, overrideLayerOrder=None, allcombinations=False):
         if composite:
             imglist = []
 
@@ -129,9 +130,10 @@ init -50 python:
                 path_list[-1] = os.path.splitext(path_list[-1])[0]
                 path_list = tuple(prepend + path_list[excludeFirstXFolders:])
 
-                renpy.image(path_list, path)
-                if flip and not composite:
-                    renpy.image(path_list + ("flip", ), im.Flip(path, horizontal=True))
+                if composite:
+                    renpy.image(('_'.join(path_list),), path)
+                else:
+                    renpy.image(path_list, path)
 
                 if composite:
                     # keep ordered list of all images, and also the corresponding paths
@@ -211,14 +213,14 @@ init -50 python:
                         eyesopen = basepath + (u'e', emote)
                         eyesclose = basepath + (u'ec', emote)
                         if not eyesopen in basedict[basepath]['list']:
-                            renpy.image(eyesopen, ' '.join(basepath+(u'e', u'default')))
+                            renpy.image(('_'.join(eyesopen), ), '_'.join(basepath+(u'e', u'default')))
                         if not basepath+(u'e', u'default') in basedict[basepath]['list']:
-                            renpy.image(basepath+(u'e', u'default'), ' '.join(basepath+(u'ec', u'default')))
+                            renpy.image(('_'.join(basepath+(u'e', u'default')), ), '_'.join(basepath+(u'ec', u'default')))
                         if not eyesclose in basedict[basepath]['list']:
-                            renpy.image(eyesclose, ' '.join(basepath+(u'ec', u'default')))
+                            renpy.image(('_'.join(eyesclose), ), '_'.join(basepath+(u'ec', u'default')))
                         if not basepath+(u'ec', u'default') in basedict[basepath]['list']:
-                            renpy.image(basepath+(u'ec', u'default'), ' '.join(basepath+(u'e', u'default')))
-                        renpy.image(basepath + (u'ed', emote), blinkeyes(' '.join(eyesopen), ' '.join(eyesclose)))
+                            renpy.image(('_'.join(basepath+(u'ec', u'default')), ), '_'.join(basepath+(u'e', u'default')))
+                        renpy.image(('_'.join(basepath + (u'ed', emote)), ), blinkeyes('_'.join(eyesopen), '_'.join(eyesclose)))
                         basedict[basepath]['list'].append(basepath + (u'ed', emote))
                     basedict[basepath]['parts'].append('ed')
 
@@ -229,15 +231,15 @@ init -50 python:
                         mouthopen = basepath + (u'm', emote)
                         mouthclose = basepath + (u'mc', emote)
                         if not mouthopen in basedict[basepath]['list']:
-                            renpy.image(mouthopen, ' '.join(basepath+(u'm', u'default')))
+                            renpy.image(('_'.join(mouthopen), ), '_'.join(basepath+(u'm', u'default')))
                         if not basepath+(u'm', u'default') in basedict[basepath]['list']:
-                            renpy.image(basepath+(u'm', u'default'), ' '.join(basepath+(u'mc', u'default')))
+                            renpy.image(('_'.join(basepath+(u'm', u'default')), ), '_'.join(basepath+(u'mc', u'default')))
                         if not mouthclose in basedict[basepath]['list']:
-                            renpy.image(mouthclose, ' '.join(basepath+(u'mc', u'default')))
+                            renpy.image(('_'.join(mouthclose), ), '_'.join(basepath+(u'mc', u'default')))
                         if not basepath+(u'mc', u'default') in basedict[basepath]['list']:
-                            renpy.image(basepath+(u'mc', u'default'), ' '.join(basepath+(u'm', u'default')))
-                        renpy.image(basepath + (u'md', emote), FlapMouth(' '.join(mouthclose), ' '.join(mouthopen), cha=charname))
-                        renpy.image(basepath + (u'mdo', emote), FlapMouth(' '.join(mouthopen), ' '.join(mouthclose), cha=charname))
+                            renpy.image(('_'.join(basepath+(u'mc', u'default')), ), '_'.join(basepath+(u'm', u'default')))
+                        renpy.image(('_'.join(basepath + (u'md', emote)), ), FlapMouth('_'.join(mouthclose), '_'.join(mouthopen), cha=charname))
+                        renpy.image(('_'.join(basepath + (u'mdo', emote)), ), FlapMouth('_'.join(mouthopen), '_'.join(mouthclose), cha=charname))
                         basedict[basepath]['list'].append(basepath + (u'md', emote))
                         basedict[basepath]['list'].append(basepath + (u'mdo', emote))
                     basedict[basepath]['parts'].append('md')
@@ -248,7 +250,7 @@ init -50 python:
                     for emote in basedict[basepath]['emotes']:
                         ev = basepath + (ek, emote)
                         if not ev in basedict[basepath]['list']:
-                            renpy.image(ev, ' '.join(basepath+(ek, u'default')))
+                            renpy.image(('_'.join(ev), ), '_'.join(basepath+(ek, u'default')))
                         basedict[basepath]['list'].append(basepath + (ek, emote))
 
                 # determine the layer order
@@ -259,115 +261,39 @@ init -50 python:
                     layerorder += basedict[basepath]['optionals']
                 basedict[basepath]['layerorder'] = layerorder
 
-                # create a list of all possible combinations of the extra parts
-                extraperms = []
-                eks = sorted(basedict[basepath]['extraparts'].keys())
-                def addperms(ek=0, tempperm=[]):
-                    if ek >= len(eks):
-                        return
-                    for emote in basedict[basepath]['emotes']:
-                        tempperm2 = list(tempperm)
-                        tempperm2.append((eks[ek], emote))
-                        if ek < len(eks)-1:
-                            addperms(ek+1, tempperm2)
-                        else:
-                            extraperms.append(tuple(tempperm2))
-                addperms()
-                if extraperms == []:
-                    extraperms = [()]
-
                 # build the livecomposites from bases and emotes
-                for base in basedict[basepath]['bases']:
-                    size = renpy.image_size(im.Image(pathlist[basepath+(base,)]))
-                    basespr = BaseCSprite(' '.join(basepath+(base,)), size)
-                    if allcombinations:
-                        for eyes in basedict[basepath]['list']:
-                            #if not eyes[-2] in (u'e', u'ec', u'ed'):
-                            if not eyes[-2] in eyesauto:
-                                continue
-                            for mouth in basedict[basepath]['list']:
-                                #if not mouth[-2] in (u'm', u'mc', u'md', u'mdo'):
-                                if not mouth[-2] in mouthauto:
-                                    continue
-                                for ext in extraperms:
-                                    for o in range(len(basedict[basepath]['optionals'])+1):
-                                        for ops in itertools.combinations(basedict[basepath]['optionals'], o):
-                                            layers = []
-                                            pathtuple = list(basepath)
-                                            for layer in layerorder:
-                                                if layer == 'base':
-                                                    layers.append(' '.join(basepath+(base,)))
-                                                    pathtuple.append(base)
-                                                elif layer == 'eyes':
-                                                    layers.append(' '.join(eyes))
-                                                    pathtuple += eyes[-2:]
-                                                elif layer == 'mouth':
-                                                    layers.append(' '.join(mouth))
-                                                    pathtuple += mouth[-2:]
-                                                elif layer in ops:
-                                                    layers.append(' '.join(basepath + (u'optional', layer)))
-                                                    pathtuple.append(layer)
-                                                else:
-                                                    for ex in ext:
-                                                        if layer == ex[0]:
-                                                            layers.append(' '.join(basepath + ex))
-                                                            pathtuple += ex
-
-                                            #devlog.info(' '.join(pathtuple))
-                                            renpy.image(tuple(pathtuple), basespr(layers))
-                                            if flip:
-                                                renpy.image(tuple(pathtuple)+(u'flip',), flipimage(' '.join(pathtuple)))
-                    else:
+                layers = []
+                for layer in layerorder:
+                    if layer == 'base':
+                        for base in basedict[basepath]['bases']:
+                            layers.append(Attribute('base', base, '_'.join(basepath+(base,)), base == 'base'))
+                    elif layer == 'eyes':
                         for emote in basedict[basepath]['emotes']:
                             eyes = basepath+(u'ed', emote)
+                            layers.append(Attribute('ed', emote, '_'.join(eyes), emote == 'default'))
+                    elif layer == 'mouth':
+                        for emote in basedict[basepath]['emotes']:
                             mouth = basepath+(u'md', emote)
-                            ext = []
-                            for ex in sorted(basedict[basepath]['extraparts'].keys()):
-                                ext.append((ex, emote))
-                            for o in range(len(basedict[basepath]['optionals'])+1):
-                                for ops in itertools.combinations(basedict[basepath]['optionals'], o):
-                                    layers = []
-                                    pathtuple = list(basepath)
-                                    for layer in layerorder:
-                                        if layer == 'base':
-                                            layers.append(' '.join(basepath+(base,)))
-                                            pathtuple.append(base)
-                                        elif layer == 'eyes':
-                                            layers.append(' '.join(eyes))
-                                            pathtuple += eyes[-2:]
-                                        elif layer == 'mouth':
-                                            layers.append(' '.join(mouth))
-                                            pathtuple += mouth[-2:]
-                                        elif layer in ops:
-                                            layers.append(' '.join(basepath + (u'optional', layer)))
-                                            pathtuple.append(layer)
-                                        else:
-                                            for ex in ext:
-                                                if layer == ex[0]:
-                                                    layers.append(' '.join(basepath + ex))
-                                                    pathtuple += ex
-
-                                    #devlog.info(' '.join(pathtuple))
-                                    renpy.image(tuple(pathtuple), basespr(layers))
-                                    if flip:
-                                        renpy.image(tuple(pathtuple)+(u'flip',), flipimage(' '.join(pathtuple)))
-                    # shortcuts to emotes - default base can omit base
-                    for emote in basedict[basepath]['emotes']:
-                        if base == u'base':
-                            newemote = basepath + (emote,)
-                        else:
-                            newemote = basepath + (base, emote)
-                        oldemote = basepath + (base,) + (u'ed', emote) + (u'md', emote)
-                        for ek in basedict[basepath]['extraparts']:
-                            oldemote += (ek, emote)
-                        MapEmote(' '.join(newemote), ' '.join(oldemote))
+                            layers.append(Attribute('md', emote, '_'.join(mouth), emote == 'default'))
+                    elif layer in basedict[basepath]['optionals']:
+                        layers.append(Attribute(layer, layer, '_'.join(basepath + (u'optional', layer))))
+                    else:
+                        for ex in sorted(basedict[basepath]['extraparts'].keys()):
+                            if layer == ex:
+                                for emote in basedict[basepath]['emotes']:
+                                    layers.append(Attribute(ex, emote, '_'.join(basepath + (ex, emote)), emote == 'default'))
+                layered = LayeredImage(layers)
+                spritedict[charname] = layered
+                renpy.image((charname,), layered)
 
             #pretty(basedict)
 
-    def MapEmote(newname, oldname, addOptionals=True, flip=True):
+    def MapEmote(newname, oldname, addOptionals=True):
         newpath = tuple(newname.split())
-        oldpath = oldname.split()
+        charname = newpath[0]
+        newemote = newpath[-1]
 
+        oldpath = oldname.split()
         basepath = None
         for basepath2 in basedict:
             if basepath2 == tuple(oldpath[:len(basepath2)]):
@@ -377,99 +303,63 @@ init -50 python:
             return None
 
         bases = None
-        eyes = ('ed', 'default')
-        mouth = ('md', 'default')
+        eyes = None
+        mouth = None
         extraparts = {}
         for ek in basedict[basepath]['extraparts']:
-            extraparts[ek] = (ek, 'default')
+            extraparts[ek] = None
         optionals = []
         i = len(basepath)
         while i < len(oldpath):
             if oldpath[i] in basedict[basepath]['bases']:
-                bases = [oldpath[i],]
-            elif oldpath[i] in eyesdef:
-                eyes = oldpath[i:i+2]
-                i += 1
-            elif oldpath[i] in mouthdef:
-                mouth = oldpath[i:i+2]
-                i += 1
-            elif oldpath[i] in basedict[basepath]['extraparts']:
-                extraparts[oldpath[i]] = oldpath[i:i+2]
-                i += 1
+                bases = oldpath[i]
+            elif oldpath[i].split('_')[0] in eyesdef:
+                eyes = (oldpath[i],)
+            elif oldpath[i].split('_')[0] in mouthdef:
+                mouth = (oldpath[i],)
+            elif oldpath[i].split('_')[0] in basedict[basepath]['extraparts']:
+                extraparts[oldpath[i].split('_')[0]] = (oldpath[i],)
             elif oldpath[i] in basedict[basepath]['optionals']:
                 optionals.append(oldpath[i])
             i += 1
         optionals = tuple(sorted(optionals))
 
-        autobases = False
-        if bases is None:
-            autobases = True
-            bases = basedict[basepath]['bases']
-
-        for base in bases:
-            size = renpy.image_size(im.Image(pathlist[basepath+(base,)]))
-            basespr = BaseCSprite(' '.join(basepath+(base,)), size)
-
-            newpath2 = newpath
-            if autobases and not base == 'base':
-                 newpath2 += (base,)
-
-            if addOptionals:
-                for o in range(len(basedict[basepath]['optionals'])+1):
-                    for ops in itertools.combinations(basedict[basepath]['optionals'], o):
-                        layers = []
-                        pathtuple = list(basepath)
-                        for layer in basedict[basepath]['layerorder']:
-                            if layer == 'base':
-                                layers.append(' '.join(basepath+(base,)))
-                                pathtuple.append(base)
-                            elif layer == 'eyes':
-                                layers.append(' '.join(basepath+tuple(eyes)))
-                                pathtuple += eyes
-                            elif layer == 'mouth':
-                                layers.append(' '.join(basepath+tuple(mouth)))
-                                pathtuple += mouth
-                            elif layer in ops or layer in optionals:
-                                layers.append(' '.join(basepath + (u'optional', layer)))
-                                pathtuple.append(layer)
-                            elif layer in extraparts:
-                                layers.append(' '.join(basepath + tuple(extraparts[layer])))
-                                pathtuple += extraparts[layer]
-
-                        if not renpy.has_image(tuple(pathtuple), exact=True):
-                            renpy.image(tuple(pathtuple), basespr(layers))
-                            if flip:
-                                renpy.image(tuple(pathtuple)+(u'flip',), flipimage(' '.join(pathtuple)))
-                        renpy.image(newpath2+ops, ' '.join(pathtuple))
-                        if flip:
-                            renpy.image(newpath2+ops+(u'flip',), flipimage(' '.join(pathtuple)))
+        # build the livecomposites from bases and emotes
+        layers = []
+        for layer in layerorder:
+            if layer == 'base':
+                for base in basedict[basepath]['bases']:
+                    layers.append(Attribute('base', base, '_'.join(basepath+(base,)), base == 'base'))
+                    if bases == base:
+                        layers.append(Attribute('base', newemote, '_'.join(basepath+(base,))))
+            elif layer == 'eyes':
+                for emote in basedict[basepath]['emotes']:
+                    if eyes != None and emote == newemote:
+                        layers.append(Attribute('ed', emote, '_'.join(basepath+eyes), emote == 'default'))
+                    else:
+                        layers.append(Attribute('ed', emote, '_'.join(basepath+(u'ed', emote)), emote == 'default'))
+            elif layer == 'mouth':
+                for emote in basedict[basepath]['emotes']:
+                    if mouth != None and emote == newemote:
+                        layers.append(Attribute('md', emote, '_'.join(basepath+mouth), emote == 'default'))
+                    else:
+                        layers.append(Attribute('md', emote, '_'.join(basepath+(u'md', emote)), emote == 'default'))
+            elif layer in basedict[basepath]['optionals']:
+                layers.append(Attribute(layer, layer, '_'.join(basepath + (u'optional', layer))))
+                if layer in optionals:
+                    layers.append(Attribute(layer+newemote, newemote, '_'.join(basepath + (u'optional', layer))))
             else:
-                layers = []
-                pathtuple = list(basepath)
-                for layer in basedict[basepath]['layerorder']:
-                    if layer == 'base':
-                        layers.append(' '.join(basepath+(base,)))
-                        pathtuple.append(base)
-                    elif layer == 'eyes':
-                        layers.append(' '.join(basepath+tuple(eyes)))
-                        pathtuple += eyes
-                    elif layer == 'mouth':
-                        layers.append(' '.join(basepath+tuple(mouth)))
-                        pathtuple += mouth
-                    elif layer in optionals:
-                        layers.append(' '.join(basepath + (u'optional', layer)))
-                        pathtuple.append(layer)
-                    elif layer in extraparts:
-                        layers.append(' '.join(basepath + tuple(extraparts[layer])))
-                        pathtuple += extraparts[layer]
+                for ex in sorted(basedict[basepath]['extraparts'].keys()):
+                    if layer == ex:
+                        for emote in basedict[basepath]['emotes']:
+                            if extraparts[ex] != None and emote == newemote:
+                                layers.append(Attribute(ex, emote, '_'.join(basepath+extraparts[ex]), emote == 'default'))
+                            else:
+                                layers.append(Attribute(ex, emote, '_'.join(basepath + (ex, emote)), emote == 'default'))
+        layered = LayeredImage(layers)
+        spritedict[charname] = layered
+        renpy.image((charname,), layered)
 
-                if not renpy.has_image(tuple(pathtuple), exact=True):
-                    renpy.image(tuple(pathtuple), basespr(layers))
-                    if flip:
-                        renpy.image(tuple(pathtuple)+(u'flip',), flipimage(' '.join(pathtuple)))
-                renpy.image(newpath2, ' '.join(pathtuple))
-                if flip:
-                    renpy.image(newpath2+(u'flip',), flipimage(' '.join(pathtuple)))
 
     # This is set to the name of the character that is speaking, or
     # None if no character is currently speaking.
@@ -508,8 +398,10 @@ init -50 python:
     speaker = renpy.curry(speaker_callback)
 
     def FlapMouth(mouth1, mouth2, cha=None):
-        if cha is None:
-            cha = mouth1.split()[0]
+        if cha is None and '_' in mouth1:
+            cha = mouth1.split('_')[0]
+        elif cha is None:
+            cha = mouth1.split(' ')[0]
         mouth = flapmouth(mouth1, mouth2)
         return WhileSpeaking(cha, mouth, mouth1)
 
