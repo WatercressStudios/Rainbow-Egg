@@ -19,11 +19,11 @@ init python:
     DefineImages("sprites", composite=True, overrideLayerOrder=layerorder)
 
     # manually create shortcuts to more complex expressions
-    MapEmote('war bigsmile',  'war ec_bigsmile blush')
+    MapEmote('war hugesmile',  'war md_hugesmile ed_bigsmile blush')
 
 # override some default mouth flap behaviours
 image war_md_default = "war_mdo_default"
-image war_md_bigsmile = FlapMouth("war_mc_smug", "war_m_bigsmile")
+image war_md_hugesmile = FlapMouth("war_mc_smug", "war_m_bigsmile")
 
 
 # The game starts here.
@@ -43,7 +43,7 @@ label demo:
     # replace it by adding a file named "eileen happy.png" to the images
     # directory.
 
-    show war bigsmile blush:
+    show war hugesmile:
         xalign 0.3
     show paz:
         xalign 0.7
