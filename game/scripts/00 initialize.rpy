@@ -50,6 +50,7 @@ label demo:
 
     # These display lines of dialogue.
     war "Hello, world."
+    call screen dynamicspritespreview
     bubble war "This time with a bubble!"
     bubble scale 1.5 war "Make much bigger bubbles if there's lot to say..."
     bubble scale 0.6 war "...or smaller ones."

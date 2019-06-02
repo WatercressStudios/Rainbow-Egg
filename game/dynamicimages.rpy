@@ -15,7 +15,7 @@ init:
             1.5
         # This randomizes the time between blinking.
         eyes2
-        .25
+        .15
         repeat
 
     transform flapmouth(mouth1, mouth2):
@@ -39,6 +39,9 @@ init:
         ypos 0.0
         xanchor 0.5
         yalign 1.0
+
+    transform height:
+        ypos 1.05
 
 
 init -100 python:
@@ -110,9 +113,13 @@ init -50 python:
     mouthauto = ('md', )
 
     basedict = {}
-    pathlist = {}
+    pathdict = {}
     spritedict = {}
-    def DefineImages(imageFolder, composite=False, prepend=None, overrideCharname=None, overrideLayerOrder=None, allcombinations=False):
+    charlist = []
+    posedict = {}
+    haseyeslist = []
+    hasmouthlist = []
+    def DefineImages(imageFolder, composite=False, prepend=None, overrideCharname=None, overrideLayerOrder=None):
         if composite:
             imglist = []
 
@@ -129,47 +136,57 @@ init -50 python:
                     path_list = path_list[0:-1] + path_list[-1].split()
                 path_list[-1] = os.path.splitext(path_list[-1])[0]
                 path_list = tuple(prepend + path_list[excludeFirstXFolders:])
+                lowerpath_list = tuple([ x.lower() for x in path_list ])
 
                 if composite:
                     renpy.image(('_'.join(path_list),), path)
+                    if lowerpath_list != path_list:
+                        renpy.image(('_'.join(lowerpath_list),), path)
                 else:
                     renpy.image(path_list, path)
+                    if lowerpath_list != path_list:
+                        renpy.image(lowerpath_list, path)
 
                 if composite:
                     # keep ordered list of all images, and also the corresponding paths
                     imglist.append(path_list)
-                    pathlist[path_list] = path
+                    pathdict[path_list] = path
 
         if composite:
             baselist = []
             for path_list in imglist:
-                # get the list of sprite pose folders, which are detected if they contain:
-                # 1. a base ('/base.')
-                # 2. default eye ('/e default.' or '/ec default.')
-                # 3. default mouth ('/m default.' or '/mc default.')
+                # get the list of sprite pose folders, which are detected if they contain a base e.g. '/base.png'
                 basepath = path_list[:-1]
                 if basepath in baselist:
                     continue
                 if u'base' in path_list[-1]:
                     has_eyes = False
-                    if basepath + (u'e', u'default') in pathlist:
+                    if basepath + (u'e', u'default') in pathdict:
                         has_eyes = True
-                    if basepath + (u'ec', u'default') in pathlist:
+                    if basepath + (u'ec', u'default') in pathdict:
                         has_eyes = True
 
                     has_mouth = False
-                    if basepath + (u'm', u'default') in pathlist:
+                    if basepath + (u'm', u'default') in pathdict:
                         has_mouth = True
-                    if basepath + (u'mc', u'default') in pathlist:
+                    if basepath + (u'mc', u'default') in pathdict:
                         has_mouth = True
 
-                    if has_eyes and has_mouth:
-                        baselist.append(basepath)
+                    if has_eyes:
+                        haseyeslist.append(basepath)
+                    if has_mouth:
+                        hasmouthlist.append(basepath)
+                    baselist.append(basepath)
 
             for basepath in baselist:
                 charname = overrideCharname
                 if charname is None:
                     charname = basepath[0]
+                if not charname in charlist:
+                    charlist.append(charname)
+                if not charname in posedict:
+                    posedict[charname] = []
+                posedict[charname].append(basepath)
                 #devlog.info('==== ' + charname)
 
                 # build the lists
@@ -178,6 +195,8 @@ init -50 python:
                 basedict[basepath]['parts'] = []
                 basedict[basepath]['emotes'] = []
                 basedict[basepath]['list'] = []
+                basedict[basepath]['eyes'] = []
+                basedict[basepath]['mouth'] = []
                 basedict[basepath]['extraparts'] = {}
                 basedict[basepath]['optionals'] = []
                 baselen = len(basepath)
@@ -206,44 +225,54 @@ init -50 python:
                                     basedict[basepath]['emotes'].append(emote)
                         basedict[basepath]['list'].append(path_list)
 
-                # special case for 'e' and 'ec': build blinking eyes into 'ed'
-                # fill in the missing files as "default"
-                if 'e' in basedict[basepath]['parts'] or 'ec' in basedict[basepath]['parts']:
-                    for emote in basedict[basepath]['emotes']:
-                        eyesopen = basepath + (u'e', emote)
-                        eyesclose = basepath + (u'ec', emote)
-                        if not eyesopen in basedict[basepath]['list']:
-                            renpy.image(('_'.join(eyesopen), ), '_'.join(basepath+(u'e', u'default')))
-                        if not basepath+(u'e', u'default') in basedict[basepath]['list']:
-                            renpy.image(('_'.join(basepath+(u'e', u'default')), ), '_'.join(basepath+(u'ec', u'default')))
-                        if not eyesclose in basedict[basepath]['list']:
-                            renpy.image(('_'.join(eyesclose), ), '_'.join(basepath+(u'ec', u'default')))
-                        if not basepath+(u'ec', u'default') in basedict[basepath]['list']:
-                            renpy.image(('_'.join(basepath+(u'ec', u'default')), ), '_'.join(basepath+(u'e', u'default')))
-                        renpy.image(('_'.join(basepath + (u'ed', emote)), ), blinkeyes('_'.join(eyesopen), '_'.join(eyesclose)))
-                        basedict[basepath]['list'].append(basepath + (u'ed', emote))
-                    basedict[basepath]['parts'].append('ed')
+                if basepath in haseyeslist:
+                    # special case for 'e' and 'ec': build blinking eyes into 'ed'
+                    # fill in the missing files as "default"
+                    if 'e' in basedict[basepath]['parts'] or 'ec' in basedict[basepath]['parts']:
+                        for emote in basedict[basepath]['emotes']:
+                            eyesopen = basepath + (u'e', emote)
+                            eyesclose = basepath + (u'ec', emote)
+                            if not eyesopen in basedict[basepath]['list']:
+                                renpy.image(('_'.join(eyesopen), ), '_'.join(basepath+(u'e', u'default')))
+                            else:
+                                basedict[basepath]['eyes'].append('ed_' + emote)
+                            if not basepath+(u'e', u'default') in basedict[basepath]['list']:
+                                renpy.image(('_'.join(basepath+(u'e', u'default')), ), '_'.join(basepath+(u'ec', u'default')))
+                            if not eyesclose in basedict[basepath]['list']:
+                                renpy.image(('_'.join(eyesclose), ), '_'.join(basepath+(u'ec', u'default')))
+                            else:
+                                basedict[basepath]['eyes'].append('ec_' + emote)
+                            if not basepath+(u'ec', u'default') in basedict[basepath]['list']:
+                                renpy.image(('_'.join(basepath+(u'ec', u'default')), ), '_'.join(basepath+(u'e', u'default')))
+                            renpy.image(('_'.join(basepath + (u'ed', emote)), ), blinkeyes('_'.join(eyesopen), '_'.join(eyesclose)))
+                            basedict[basepath]['list'].append(basepath + (u'ed', emote))
+                        basedict[basepath]['parts'].append('ed')
 
-                # special case for 'm' and 'mc': build flapping mouth into 'md'
-                # fill in the missing files as "default"
-                if 'm' in basedict[basepath]['parts'] or 'mc' in basedict[basepath]['parts']:
-                    for emote in basedict[basepath]['emotes']:
-                        mouthopen = basepath + (u'm', emote)
-                        mouthclose = basepath + (u'mc', emote)
-                        if not mouthopen in basedict[basepath]['list']:
-                            renpy.image(('_'.join(mouthopen), ), '_'.join(basepath+(u'm', u'default')))
-                        if not basepath+(u'm', u'default') in basedict[basepath]['list']:
-                            renpy.image(('_'.join(basepath+(u'm', u'default')), ), '_'.join(basepath+(u'mc', u'default')))
-                        if not mouthclose in basedict[basepath]['list']:
-                            renpy.image(('_'.join(mouthclose), ), '_'.join(basepath+(u'mc', u'default')))
-                        if not basepath+(u'mc', u'default') in basedict[basepath]['list']:
-                            renpy.image(('_'.join(basepath+(u'mc', u'default')), ), '_'.join(basepath+(u'm', u'default')))
-                        renpy.image(('_'.join(basepath + (u'md', emote)), ), FlapMouth('_'.join(mouthclose), '_'.join(mouthopen), cha=charname))
-                        renpy.image(('_'.join(basepath + (u'mdo', emote)), ), FlapMouth('_'.join(mouthopen), '_'.join(mouthclose), cha=charname))
-                        basedict[basepath]['list'].append(basepath + (u'md', emote))
-                        basedict[basepath]['list'].append(basepath + (u'mdo', emote))
-                    basedict[basepath]['parts'].append('md')
-                    basedict[basepath]['parts'].append('mdo')
+                if basepath in hasmouthlist:
+                    # special case for 'm' and 'mc': build flapping mouth into 'md'
+                    # fill in the missing files as "default"
+                    if 'm' in basedict[basepath]['parts'] or 'mc' in basedict[basepath]['parts']:
+                        for emote in basedict[basepath]['emotes']:
+                            mouthopen = basepath + (u'm', emote)
+                            mouthclose = basepath + (u'mc', emote)
+                            if not mouthopen in basedict[basepath]['list']:
+                                renpy.image(('_'.join(mouthopen), ), '_'.join(basepath+(u'm', u'default')))
+                            else:
+                                basedict[basepath]['mouth'].append('mdo_' + emote)
+                            if not basepath+(u'm', u'default') in basedict[basepath]['list']:
+                                renpy.image(('_'.join(basepath+(u'm', u'default')), ), '_'.join(basepath+(u'mc', u'default')))
+                            if not mouthclose in basedict[basepath]['list']:
+                                renpy.image(('_'.join(mouthclose), ), '_'.join(basepath+(u'mc', u'default')))
+                            else:
+                                basedict[basepath]['mouth'].append('md_' + emote)
+                            if not basepath+(u'mc', u'default') in basedict[basepath]['list']:
+                                renpy.image(('_'.join(basepath+(u'mc', u'default')), ), '_'.join(basepath+(u'm', u'default')))
+                            renpy.image(('_'.join(basepath + (u'md', emote)), ), FlapMouth('_'.join(mouthclose), '_'.join(mouthopen), cha=charname))
+                            renpy.image(('_'.join(basepath + (u'mdo', emote)), ), FlapMouth('_'.join(mouthopen), '_'.join(mouthclose), cha=charname))
+                            basedict[basepath]['list'].append(basepath + (u'md', emote))
+                            basedict[basepath]['list'].append(basepath + (u'mdo', emote))
+                        basedict[basepath]['parts'].append('md')
+                        basedict[basepath]['parts'].append('mdo')
 
                 # go through the extras and fill in the missing files as "default"
                 for ek in basedict[basepath]['extraparts']:
@@ -267,11 +296,11 @@ init -50 python:
                     if layer == 'base':
                         for base in basedict[basepath]['bases']:
                             layers.append(Attribute('base', base, '_'.join(basepath+(base,)), base == 'base'))
-                    elif layer == 'eyes':
+                    elif layer == 'eyes' and basepath in haseyeslist:
                         for emote in basedict[basepath]['emotes']:
                             eyes = basepath+(u'ed', emote)
                             layers.append(Attribute('ed', emote, '_'.join(eyes), emote == 'default'))
-                    elif layer == 'mouth':
+                    elif layer == 'mouth' and basepath in hasmouthlist:
                         for emote in basedict[basepath]['emotes']:
                             mouth = basepath+(u'md', emote)
                             layers.append(Attribute('md', emote, '_'.join(mouth), emote == 'default'))
@@ -287,6 +316,7 @@ init -50 python:
                 renpy.image(basepath, layered)
 
             #pretty(basedict)
+            DynamicSprites_VarUpdate()
 
     def MapEmote(newname, oldname, addOptionals=True):
         newpath = tuple(newname.split())
@@ -325,18 +355,30 @@ init -50 python:
             i += 1
         optionals = tuple(sorted(optionals))
 
-        if eyes == None:
+        if eyes == None and basepath in haseyeslist:
             eyes = ('ed', 'default')
-        if mouth == None:
+        if mouth == None and basepath in hasmouthlist:
             mouth = ('md', 'default')
         for ek in extraparts.keys():
             if extraparts[ek] == None:
                 extraparts[ek] = (ek, 'default')
 
-        if charpath in spritedict.keys():
-            layered = spritedict[charpath]
-        else:
-            layered = spritedict[basepath]
+        if not charpath in spritedict.keys():
+            layereddict = {}
+            for layer in layerorder:
+                layereddict[layer] = []
+            for p in spritedict:
+                if p[0] == charpath[0]:
+                    for a in spritedict[p].attributes:
+                        layereddict[a.group].append(Attribute(a.group, a.attribute, a.image, a.default))
+
+            layers = []
+            for layer in layerorder:
+                layers += layereddict[layer]
+            layered = LayeredImage(layers)
+            spritedict[charpath] = layered
+
+        layered = spritedict[charpath]
         found = False
         layers = []
         # print "Attributes: ", len(layered.attributes)
@@ -376,6 +418,9 @@ init -50 python:
                     layers.append(Attribute(a.group, newemote, '_'.join(basepath+extraparts[a.group])))
                     extraparts[a.group] = None
 
+        # devlog.info("///// " + str(charpath))
+        # for a in layers:
+        #    devlog.info( ("Group: ", a.group, "Attribute: ", a.attribute, "Image: ", a.image, "Default: ", a.default) )
         layered = LayeredImage(layers)
         spritedict[charpath] = layered
         renpy.image(charpath, layered)
@@ -427,22 +472,291 @@ init -50 python:
     def BlinkEyes(eyes1, eyes2):
         return blinkeyes(eyes1, eyes2)
 
-    def CSprite(base, size, *layers):
-        if size is None or layers is None or len(layers) == 0:
-            return base
-        argslayers = []
-        for l in layers:
-            argslayers.append((0, 0))
-            argslayers.append(l)
-        return LiveComposite(
-                size,
-                *argslayers
-            )
+    dynamicspritespreview_var_selectedchar = None
+    dynamicspritespreview_var_selectedpose = None
+    dynamicspritespreview_var_selectedlayers = {}
+    dynamicspritespreview_text_selectedchar = None
+    dynamicspritespreview_text_selectedpose = None
+    dynamicspritespreview_text_selectedlayers = {}
+    values = {}
+    valuespath = {}
+    mapemotecode = None
+    def DynamicSprites_VarUpdate():
+        global dynamicspritespreview_var_selectedchar, dynamicspritespreview_var_selectedpose, dynamicspritespreview_var_selectedlayers
+        global dynamicspritespreview_text_selectedchar, dynamicspritespreview_text_selectedpose, dynamicspritespreview_text_selectedlayers
+        global values, valuespath, mapemotecode
+        if len(charlist) == 0:
+            dynamicspritespreview_text_selectedchar = "No character"
+        else:
+            if dynamicspritespreview_var_selectedchar is None:
+                dynamicspritespreview_var_selectedchar = 0
+            dynamicspritespreview_text_selectedchar = charlist[dynamicspritespreview_var_selectedchar]
 
-    class BaseCSprite:
-        def __init__(self, basesprite, size):
-            self.basesprite = basesprite
-            self.size = size
+        if len(charlist) == 0 or len(posedict) == 0:
+            dynamicspritespreview_text_selectedpose = "No pose"
+        else:
+            if dynamicspritespreview_var_selectedpose is None:
+                dynamicspritespreview_var_selectedpose = 0
+            basepath = posedict[dynamicspritespreview_text_selectedchar][dynamicspritespreview_var_selectedpose]
+            if len(basepath) < 2:
+                dynamicspritespreview_text_selectedpose = "default pose"
+            else:
+                dynamicspritespreview_text_selectedpose = basepath[1]
+            infodict = basedict[basepath]
+            layerorder = infodict['layerorder']
+            values = {}
+            valuespath = {}
+            values['base'] = list(infodict['bases'])
+            if 'base' in values['base']:
+                values['base'].remove('base')
+            values['base'] = ['base'] + sorted(values['base'])
+            valuespath['base'] = []
+            for base in values['base']:
+                valuespath['base'].append('_'.join(basepath+(base,)))
 
-        def __call__(self, layers=[]):
-            return CSprite(self.basesprite, self.size, *layers)
+            values['eyes'] = list(infodict['eyes'])
+            if 'ed_default' in values['eyes']:
+                values['eyes'].remove('ed_default')
+            values['eyes'] = ['ed_default'] + sorted(values['eyes'])
+            valuespath['eyes'] = []
+            for eyes in values['eyes']:
+                valuespath['eyes'].append('_'.join(basepath+(eyes,)))
+
+            values['mouth'] = list(infodict['mouth'])
+            if 'md_default' in values['mouth']:
+                values['mouth'].remove('md_default')
+            values['mouth'] = ['md_default'] + sorted(values['mouth'])
+            valuespath['mouth'] = []
+            for mouth in values['mouth']:
+                valuespath['mouth'].append('_'.join(basepath+(mouth,)))
+
+            for op in sorted(list(infodict['optionals'])):
+                values[op] = ["No", "Yes"]
+                valuespath[op] = [ None, '_'.join(basepath+('optional',op,)) ]
+
+            for ex in infodict['extraparts']:
+                values[ex] = list(infodict['extraparts'][ex])
+                if 'default' in values[ex]:
+                    values[ex].remove('default')
+                values[ex] = ['default'] + sorted(values[ex])
+                valuespath[ex] = []
+                for e in values[ex]:
+                    valuespath[ex].append('_'.join(basepath+(ex, e,)))
+
+            dynamicspritespreview_text_selectedlayers = {}
+            if len(basepath) < 2:
+                mapemotecode = "MapEmote('{char} NEWEMOTE', '{char}".format(char=dynamicspritespreview_text_selectedchar)
+            else:
+                mapemotecode = "MapEmote('{char} NEWEMOTE', '{char} {pose}".format(char=dynamicspritespreview_text_selectedchar, pose=dynamicspritespreview_text_selectedpose)
+            for layer in layerorder:
+                if not layer in dynamicspritespreview_var_selectedlayers:
+                    dynamicspritespreview_var_selectedlayers[layer] = 0
+                dynamicspritespreview_text_selectedlayers[layer] = values[layer][dynamicspritespreview_var_selectedlayers[layer]]
+                if layer == 'base':
+                    mapemotecode += " " + dynamicspritespreview_text_selectedlayers[layer]
+                elif layer == 'eyes':
+                    mapemotecode += " " + dynamicspritespreview_text_selectedlayers[layer]
+                elif layer == 'mouth':
+                    mapemotecode += " " + dynamicspritespreview_text_selectedlayers[layer]
+                elif layer in infodict['optionals']:
+                    if dynamicspritespreview_text_selectedlayers[layer] == "Yes":
+                        mapemotecode += " " + layer
+                else:
+                    mapemotecode += " " + layer + "_" + dynamicspritespreview_text_selectedlayers[layer]
+            mapemotecode += "')"
+
+    class DynamicSprites_ChangeSelectedChar:
+        def __init__(self, i, layer=None):
+            self.i = i
+        def __call__(self):
+            global dynamicspritespreview_var_selectedchar, dynamicspritespreview_var_selectedpose, dynamicspritespreview_var_selectedlayers
+            dynamicspritespreview_var_selectedchar = self.i
+            dynamicspritespreview_var_selectedpose = 0
+            dynamicspritespreview_var_selectedlayers = {}
+            DynamicSprites_VarUpdate()
+    class DynamicSprites_ChangeSelectedPose:
+        def __init__(self, i, layer=None):
+            self.i = i
+        def __call__(self):
+            global dynamicspritespreview_var_selectedpose, dynamicspritespreview_var_selectedlayers
+            dynamicspritespreview_var_selectedpose = self.i
+            dynamicspritespreview_var_selectedlayers = {}
+            DynamicSprites_VarUpdate()
+    class DynamicSprites_ChangeSelectedLayer:
+        def __init__(self, i, layer):
+            self.i = i
+            self.layer = layer
+        def __call__(self):
+            global dynamicspritespreview_var_selectedlayers
+            dynamicspritespreview_var_selectedlayers[self.layer] = self.i
+            DynamicSprites_VarUpdate()
+
+screen dynamicspritespreview_dropdown(currentselected, selectionlist, callback, layer=None, offset=(0,0)):
+    zorder 201
+    button:
+        background None
+        xysize (1.0, 1.0)
+        margin (0,0)
+        padding (0,0)
+        action Hide("dynamicspritespreview_dropdown")
+        button:
+            background Solid("222e")
+            align (0.92, 0.3)
+            offset offset
+            xysize (400, 600)
+            margin (0,0)
+            padding (15,15,50,15)
+            action Hide("dynamicspritespreview_dropdown")
+            viewport id "dynamicspritespreview_viewport_dropdown":
+                draggable True
+                mousewheel True
+                vbox:
+                    spacing 5
+                    for i in range(len(selectionlist)):
+                        $ t = selectionlist[i]
+                        if t == currentselected:
+                            $ t = '{b}'+t+'{/b}'
+                        button:
+                            background Solid("000e")
+                            hover_background Solid("225e")
+                            xsize 1.0
+                            hovered [ callback(i, layer),
+                                    Show('dynamicspritespreview'),
+                                    Show('dynamicspritespreview_dropdown',
+                                        currentselected = selectionlist[i],
+                                        selectionlist = selectionlist,
+                                        callback = callback,
+                                        layer = layer,
+                                        offset = offset) ]
+                            action Hide("dynamicspritespreview_dropdown")
+                            text t:
+                                size 24
+                                color "fff"
+                                xalign 0.5
+                                text_align 0.5
+            vbar value YScrollValue("dynamicspritespreview_viewport_dropdown"):
+                xalign 1.0
+                xoffset 35
+
+screen dynamicspritespreview:
+    zorder 200
+    button:
+        background Solid("fff9")
+        xysize (1.0, 1.0)
+        margin (0,0)
+        padding (0,0)
+        action Hide("dynamicspritespreview")
+        text "DYNAMIC SPRITES PREVIEW (click here to close)":
+            size 40
+            color "000f"
+        hbox:
+            spacing 0
+            button:
+                background Solid("fffe")
+                xysize (config.screen_width/2, 1.0)
+                margin (10,50,5,10)
+                padding (5,5)
+                action NullAction()
+                frame:
+                    background None
+                    margin (0,0,0,50)
+                    padding (0,0)
+                    align (0.5, 0.0)
+                    viewport id "dynamicspritespreview_viewport_previewimage":
+                        draggable True
+                        mousewheel True
+                        xinitial 0.5
+                        yinitial 0.5
+                        for layer in layerorder:
+                            $ img = valuespath[layer][dynamicspritespreview_var_selectedlayers[layer]]
+                            if not img is None:
+                                add valuespath[layer][dynamicspritespreview_var_selectedlayers[layer]]:
+                                    align (0.5, 0.5)
+                                    zoom 0.8
+                button:
+                    align (0.5, 1.0)
+                    text mapemotecode:
+                        align (0.5, 0.5)
+                        text_align 0.5
+                        size 18
+                        color "000"
+
+            button:
+                background Solid("fffe")
+                xysize (config.screen_width/4, 1.0)
+                margin (5,50,5,10)
+                padding (5,5)
+                action NullAction()
+                vbox:
+                    spacing 10
+                    hbox:
+                        align (0.5, 0.5)
+                        spacing 10
+                        button:
+                            background Solid("222")
+                            hover_background Solid("225e")
+                            xysize (150, 40)
+                            margin (0,0)
+                            padding (0,0)
+                            action Show("dynamicspritespreview_dropdown",
+                                currentselected=dynamicspritespreview_text_selectedchar,
+                                selectionlist=charlist,
+                                callback=DynamicSprites_ChangeSelectedChar,
+                                offset=(-250,-100))
+                            text dynamicspritespreview_text_selectedchar:
+                                size 20
+                                color "fff"
+                                align (0.5, 0.5)
+                                text_align 0.5
+                        button:
+                            background Solid("222")
+                            hover_background Solid("225e")
+                            xysize (250, 40)
+                            margin (0,0)
+                            padding (0,0)
+                            action Show("dynamicspritespreview_dropdown",
+                                currentselected=dynamicspritespreview_text_selectedpose,
+                                selectionlist=[x[-1] for x in posedict[dynamicspritespreview_text_selectedchar]],
+                                callback=DynamicSprites_ChangeSelectedPose,
+                                offset=(0,-100))
+                            text dynamicspritespreview_text_selectedpose:
+                                size 20
+                                color "fff"
+                                align (0.5, 0.5)
+                                text_align 0.5
+                    null height 20
+                    for i in range(len(layerorder)):
+                        $ l = layerorder[i]
+                        hbox:
+                            spacing 10
+                            label l:
+                                xysize (150, 40)
+                                margin (0,0)
+                                padding (0,0)
+                                text_size 24
+                                text_color "000"
+                                text_align (0.5, 0.5)
+                                text_text_align 1.0
+                            button:
+                                background Solid("222")
+                                hover_background Solid("225e")
+                                xysize (250, 40)
+                                margin (0,0)
+                                padding (0,0)
+                                action Show("dynamicspritespreview_dropdown",
+                                    currentselected=dynamicspritespreview_text_selectedlayers[l],
+                                    selectionlist=values[l],
+                                    callback=DynamicSprites_ChangeSelectedLayer,
+                                    layer=l,
+                                    offset=(0,i*40))
+                                text dynamicspritespreview_text_selectedlayers[l]:
+                                    size 20
+                                    color "fff"
+                                    align (0.5, 0.5)
+                                    text_align 0.5
+            button:
+                background Solid("fffe")
+                xysize (config.screen_width/4, 1.0)
+                margin (5,50,10,10)
+                padding (5,5)
+                action NullAction()
