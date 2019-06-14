@@ -48,6 +48,7 @@ init -100 python:
     import os
     import sys
     import logging
+    import pygame.scrap
 
     # absolute path to the game directory, which is formatted according
     # to the conventions of the local OS
@@ -481,10 +482,12 @@ init -50 python:
     values = {}
     valuespath = {}
     mapemotecode = None
+    mapemotecode_postscript = None
+    savedemotes = []
     def DynamicSprites_VarUpdate():
         global dynamicspritespreview_var_selectedchar, dynamicspritespreview_var_selectedpose, dynamicspritespreview_var_selectedlayers
         global dynamicspritespreview_text_selectedchar, dynamicspritespreview_text_selectedpose, dynamicspritespreview_text_selectedlayers
-        global values, valuespath, mapemotecode
+        global values, valuespath, mapemotecode, mapemotecode_postscript
         if len(charlist) == 0:
             dynamicspritespreview_text_selectedchar = "No character"
         else:
@@ -564,6 +567,7 @@ init -50 python:
                 else:
                     mapemotecode += " " + layer + "_" + dynamicspritespreview_text_selectedlayers[layer]
             mapemotecode += "')"
+            DynamicSprites_CheckClipboard()()
 
     class DynamicSprites_ChangeSelectedChar:
         def __init__(self, i, layer=None):
@@ -590,18 +594,36 @@ init -50 python:
             global dynamicspritespreview_var_selectedlayers
             dynamicspritespreview_var_selectedlayers[self.layer] = self.i
             DynamicSprites_VarUpdate()
+    class DynamicSprites_CopyToClipboard:
+        def __call__(self):
+            global mapemotecode, mapemotecode_postscript
+            if type(mapemotecode) is unicode and mapemotecode != "":
+                pygame.scrap.put(pygame.scrap.SCRAP_TEXT, mapemotecode.encode("utf-8"))
+            DynamicSprites_CheckClipboard()()
+    class DynamicSprites_CheckClipboard:
+        def __call__(self):
+            global mapemotecode, mapemotecode_postscript
+            cb = pygame.scrap.get(pygame.scrap.SCRAP_TEXT)
+            print "HELLO, " + cb
+            if type(mapemotecode) != unicode or mapemotecode == "":
+                mapemotecode_postscript = ""
+            elif cb == mapemotecode:
+                mapemotecode_postscript = " <COPIED>"
+            else:
+                mapemotecode_postscript = " <CLICK TO COPY>"
+            renpy.restart_interaction()
 
 screen dynamicspritespreview_dropdown(currentselected, selectionlist, callback, layer=None, offset=(0,0)):
     zorder 201
-    button:
+    frame:
         background None
         xysize (1.0, 1.0)
         margin (0,0)
         padding (0,0)
-        action Hide("dynamicspritespreview_dropdown")
+        #action Hide("dynamicspritespreview_dropdown")
         button:
             background Solid("222e")
-            align (0.92, 0.3)
+            align (0.94, 0.3)
             offset offset
             xysize (400, 600)
             margin (0,0)
@@ -640,6 +662,7 @@ screen dynamicspritespreview_dropdown(currentselected, selectionlist, callback, 
 
 screen dynamicspritespreview:
     zorder 200
+    $ mapemotecode_text = str(mapemotecode) + '{b}' + str(mapemotecode_postscript) + '{/b}'
     button:
         background Solid("fff9")
         xysize (1.0, 1.0)
@@ -656,7 +679,7 @@ screen dynamicspritespreview:
                 xysize (config.screen_width/2, 1.0)
                 margin (10,50,5,10)
                 padding (5,5)
-                action NullAction()
+                action DynamicSprites_CopyToClipboard()
                 frame:
                     background None
                     margin (0,0,0,50)
@@ -673,9 +696,12 @@ screen dynamicspritespreview:
                                 add valuespath[layer][dynamicspritespreview_var_selectedlayers[layer]]:
                                     align (0.5, 0.5)
                                     zoom 0.8
-                button:
+                frame:
+                    background None
+                    margin (0,0)
+                    padding (0,0)
                     align (0.5, 1.0)
-                    text mapemotecode:
+                    text mapemotecode_text:
                         align (0.5, 0.5)
                         text_align 0.5
                         size 18
@@ -686,7 +712,7 @@ screen dynamicspritespreview:
                 xysize (config.screen_width/4, 1.0)
                 margin (5,50,5,10)
                 padding (5,5)
-                action NullAction()
+                action Hide("dynamicspritespreview_dropdown")
                 vbox:
                     spacing 10
                     hbox:
@@ -695,14 +721,15 @@ screen dynamicspritespreview:
                         button:
                             background Solid("222")
                             hover_background Solid("225e")
-                            xysize (150, 40)
+                            xysize (150, 60)
                             margin (0,0)
                             padding (0,0)
-                            action Show("dynamicspritespreview_dropdown",
+                            hovered Show("dynamicspritespreview_dropdown",
                                 currentselected=dynamicspritespreview_text_selectedchar,
                                 selectionlist=charlist,
                                 callback=DynamicSprites_ChangeSelectedChar,
-                                offset=(-250,-100))
+                                offset=(-300,-100))
+                            action Hide("dynamicspritespreview_dropdown")
                             text dynamicspritespreview_text_selectedchar:
                                 size 20
                                 color "fff"
@@ -711,14 +738,15 @@ screen dynamicspritespreview:
                         button:
                             background Solid("222")
                             hover_background Solid("225e")
-                            xysize (250, 40)
+                            xysize (290, 60)
                             margin (0,0)
                             padding (0,0)
-                            action Show("dynamicspritespreview_dropdown",
+                            hovered Show("dynamicspritespreview_dropdown",
                                 currentselected=dynamicspritespreview_text_selectedpose,
                                 selectionlist=[x[-1] for x in posedict[dynamicspritespreview_text_selectedchar]],
                                 callback=DynamicSprites_ChangeSelectedPose,
                                 offset=(0,-100))
+                            action Hide("dynamicspritespreview_dropdown")
                             text dynamicspritespreview_text_selectedpose:
                                 size 20
                                 color "fff"
@@ -730,7 +758,7 @@ screen dynamicspritespreview:
                         hbox:
                             spacing 10
                             label l:
-                                xysize (150, 40)
+                                xysize (150, 60)
                                 margin (0,0)
                                 padding (0,0)
                                 text_size 24
@@ -740,15 +768,16 @@ screen dynamicspritespreview:
                             button:
                                 background Solid("222")
                                 hover_background Solid("225e")
-                                xysize (250, 40)
+                                xysize (290, 60)
                                 margin (0,0)
                                 padding (0,0)
-                                action Show("dynamicspritespreview_dropdown",
+                                hovered Show("dynamicspritespreview_dropdown",
                                     currentselected=dynamicspritespreview_text_selectedlayers[l],
                                     selectionlist=values[l],
                                     callback=DynamicSprites_ChangeSelectedLayer,
                                     layer=l,
-                                    offset=(0,i*40))
+                                    offset=(0,i*60))
+                                action Hide("dynamicspritespreview_dropdown")
                                 text dynamicspritespreview_text_selectedlayers[l]:
                                     size 20
                                     color "fff"
@@ -759,4 +788,4 @@ screen dynamicspritespreview:
                 xysize (config.screen_width/4, 1.0)
                 margin (5,50,10,10)
                 padding (5,5)
-                action NullAction()
+                action Hide("dynamicspritespreview_dropdown")
