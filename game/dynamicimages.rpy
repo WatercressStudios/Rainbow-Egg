@@ -113,8 +113,10 @@ init -50 python:
     eyesauto = ('ed', 'ec')
     mouthauto = ('md', )
 
+    batchmapemotes = False
     basedict = {}
     pathdict = {}
+    mapemotedict = {}
     spritedict = {}
     charlist = []
     posedict = {}
@@ -296,28 +298,42 @@ init -50 python:
                 for layer in layerorder:
                     if layer == 'base':
                         for base in basedict[basepath]['bases']:
-                            layers.append(Attribute('base', base, '_'.join(basepath+(base,)), base == 'base'))
+                            layers.append(Attribute(layer, base, '_'.join(basepath+(base,)), base == 'base'))
                     elif layer == 'eyes' and basepath in haseyeslist:
                         for emote in basedict[basepath]['emotes']:
                             eyes = basepath+(u'ed', emote)
-                            layers.append(Attribute('ed', emote, '_'.join(eyes), emote == 'default'))
+                            layers.append(Attribute(layer, emote, '_'.join(eyes), emote == 'default'))
                     elif layer == 'mouth' and basepath in hasmouthlist:
                         for emote in basedict[basepath]['emotes']:
                             mouth = basepath+(u'md', emote)
-                            layers.append(Attribute('md', emote, '_'.join(mouth), emote == 'default'))
+                            layers.append(Attribute(layer, emote, '_'.join(mouth), emote == 'default'))
                     elif layer in basedict[basepath]['optionals']:
                         layers.append(Attribute(layer, layer, '_'.join(basepath + (u'optional', layer))))
                     else:
                         for ex in sorted(basedict[basepath]['extraparts'].keys()):
                             if layer == ex:
                                 for emote in basedict[basepath]['emotes']:
-                                    layers.append(Attribute(ex, emote, '_'.join(basepath + (ex, emote)), emote == 'default'))
+                                    layers.append(Attribute(layer, emote, '_'.join(basepath + (ex, emote)), emote == 'default'))
                 layered = LayeredImage(layers)
                 spritedict[basepath] = layered
                 renpy.image(basepath, layered)
 
             #pretty(basedict)
             DynamicSprites_VarUpdate()
+
+    def SetBatchMapEmote(value):
+        global batchmapemotes
+        batchmapemotes = value
+
+    def DoBatchMapEmote():
+        for charpath in mapemotedict:
+            layereddict = mapemotedict[charpath]['layereddict']
+            layers = []
+            for layer in layerorder:
+                layers += layereddict[layer]
+            layered = LayeredImage(layers)
+            spritedict[charpath] = layered
+            renpy.image(charpath, layered)
 
     def MapEmote(newname, oldname, addOptionals=True):
         newpath = tuple(newname.split())
@@ -356,6 +372,8 @@ init -50 python:
             i += 1
         optionals = tuple(sorted(optionals))
 
+        if bases == None:
+            bases = ('base')
         if eyes == None and basepath in haseyeslist:
             eyes = ('ed', 'default')
         if mouth == None and basepath in hasmouthlist:
@@ -364,67 +382,129 @@ init -50 python:
             if extraparts[ek] == None:
                 extraparts[ek] = (ek, 'default')
 
-        if not charpath in spritedict.keys():
+        if not charpath in mapemotedict.keys():
             layereddict = {}
+            emotesdict = {}
             for layer in layerorder:
                 layereddict[layer] = []
             for p in spritedict:
                 if p[0] == charpath[0]:
                     for a in spritedict[p].attributes:
-                        layereddict[a.group].append(Attribute(a.group, a.attribute, a.image, a.default))
+                        layer = a.group
+                        emote = a.attribute
+                        layereddict[layer].append(a)
+                        if not emotesdict.has_key(emote):
+                            emotesdict[emote] = []
+                        emotesdict[emote].append(a)
+            mapemotedict[charpath] = {}
+            mapemotedict[charpath]['layereddict'] = layereddict
+            mapemotedict[charpath]['emotesdict'] = emotesdict
 
+        layereddict = mapemotedict[charpath]['layereddict']
+        emotesdict = mapemotedict[charpath]['emotesdict']
+
+        change = False
+        if emotesdict.has_key(newemote):
+            emotelayers = emotesdict[newemote]
+            for layer in layerorder:
+                if emotelayers.has_key(layer):
+                    a = emotelayers[layer]
+                    if layer == 'base':
+                        a.image = ImageReference(('_'.join(basepath+(bases,)),))
+                    elif eyes != None and layer == 'eyes':
+                        a.image = ImageReference(('_'.join(basepath+eyes),))
+                    elif mouth != None and layer == 'mouth':
+                        a.image = ImageReference(('_'.join(basepath+mouth),))
+                    elif layer in extraparts.keys() and extraparts[layer] != None:
+                        a.image = ImageReference(('_'.join(basepath+extraparts[layer]),))
+                    elif layer in optionals:
+                        a.image = ImageReference(('_'.join(basepath + (u'optional', layer)),))
+                    else:
+                        change = True
+                        layereddict[layer].remove(a)
+                        del emotelayers[layer]
+                elif layer in optionals:
+                    change = True
+                    a = Attribute(layer, newemote, '_'.join(basepath + (u'optional', layer)))
+                    layereddict[layer].append(a)
+                    emotelayers[layer] = a
+        else:
+            change = True
+            emotelayers = {}
+            emotesdict[newemote] = emotelayers
+            for layer in layerorder:
+                a = None
+                if layer == 'base':
+                    a = Attribute(layer, newemote, '_'.join(basepath+(bases,)))
+                elif eyes != None and layer == 'eyes':
+                    a = Attribute(layer, newemote, '_'.join(basepath+eyes))
+                elif mouth != None and layer == 'mouth':
+                    a = Attribute(layer, newemote, '_'.join(basepath+mouth))
+                elif layer in extraparts.keys() and extraparts[layer] != None:
+                    a = Attribute(layer, newemote, '_'.join(basepath+extraparts[layer]))
+                elif optionals != None and layer in optionals:
+                    a = Attribute(layer, newemote, '_'.join(basepath + (u'optional', layer)))
+                if not a is None:
+                    layereddict[layer].append(a)
+                    emotelayers[layer] = a
+
+        if change and not batchmapemotes:
             layers = []
             for layer in layerorder:
                 layers += layereddict[layer]
             layered = LayeredImage(layers)
             spritedict[charpath] = layered
+            renpy.image(charpath, layered)
 
-        layered = spritedict[charpath]
-        found = False
-        layers = []
-        # print "Attributes: ", len(layered.attributes)
-        for a in layered.attributes:
-            #print "Group: ", a.group, "Attribute: ", a.attribute, "Image: ", a.image, "Default: ", a.default
-            if bases == a.attribute and a.group == 'base':
-                layers.append(Attribute(a.group, a.attribute, a.image, a.default))
-                layers.append(Attribute(a.group, newemote, '_'.join(basepath+(bases,))))
-            elif newemote == a.attribute:
-                found = True
-                if eyes != None and a.group == 'ed':
-                    layers.append(Attribute(a.group, a.attribute, '_'.join(basepath+eyes), a.default))
-                elif mouth != None and a.group == 'md':
-                    layers.append(Attribute(a.group, a.attribute, '_'.join(basepath+mouth), a.default))
-                elif a.group in extraparts.keys() and extraparts[a.group] != None:
-                    layers.append(Attribute(a.group, a.attribute, '_'.join(basepath+extraparts[a.group]), a.default))
-                else:
-                    layers.append(Attribute(a.group, a.attribute, a.image, a.default))
-            elif optionals != None and a.group in optionals:
-                layers.append(Attribute(a.group, a.attribute, a.image, a.default))
-                layers.append(Attribute('___'.join((a.group,newemote)), newemote, '_'.join(basepath + (u'optional', a.group))))
-            else:
-                layers.append(Attribute(a.group, a.attribute, a.image, a.default))
+        # layered = LayeredImage(layers)
+        # spritedict[charpath] = layered
 
-        if not found:
-            oldlayers = layers
-            layers = []
-            for a in oldlayers:
-                layers.append(a)
-                if eyes != None and a.group == 'ed':
-                    layers.append(Attribute('ed', newemote, '_'.join(basepath+eyes)))
-                    eyes = None
-                elif mouth != None and a.group == 'md':
-                    layers.append(Attribute('md', newemote, '_'.join(basepath+mouth)))
-                    mouth = None
-                elif a.group in extraparts.keys() and extraparts[a.group] != None:
-                    layers.append(Attribute(a.group, newemote, '_'.join(basepath+extraparts[a.group])))
-                    extraparts[a.group] = None
+        # found = False
+        # layers = []
+        # layered = spritedict[charpath]
+        # # print "Attributes: ", len(layered.attributes)
+        # for a in layered.attributes:
+        #     #print "Group: ", a.group, "Attribute: ", a.attribute, "Image: ", a.image, "Default: ", a.default
+        #     if bases == a.attribute and a.group == 'base':
+        #         layers.append(a)
+        #         layers.append(Attribute(a.group, newemote, '_'.join(basepath+(bases,))))
+        #     elif newemote == a.attribute:
+        #         found = True
+        #         if eyes != None and a.group == 'ed':
+        #             layers.append(Attribute(a.group, a.attribute, '_'.join(basepath+eyes), a.default))
+        #         elif mouth != None and a.group == 'md':
+        #             layers.append(Attribute(a.group, a.attribute, '_'.join(basepath+mouth), a.default))
+        #         elif a.group in extraparts.keys() and extraparts[a.group] != None:
+        #             layers.append(Attribute(a.group, a.attribute, '_'.join(basepath+extraparts[a.group]), a.default))
+        #         else:
+        #             layers.append(a)
+        #     elif optionals != None and a.group in optionals:
+        #         layers.append(a)
+        #         layers.append(Attribute('___'.join((a.group,newemote)), newemote, '_'.join(basepath + (u'optional', a.group))))
+        #     else:
+        #         layers.append(a)
+        #
+        # if not found:
+        #     oldlayers = layers
+        #     layers = []
+        #     for a in oldlayers:
+        #         layers.append(a)
+        #         if eyes != None and a.group == 'ed':
+        #             layers.append(Attribute('ed', newemote, '_'.join(basepath+eyes)))
+        #             eyes = None
+        #         elif mouth != None and a.group == 'md':
+        #             layers.append(Attribute('md', newemote, '_'.join(basepath+mouth)))
+        #             mouth = None
+        #         elif a.group in extraparts.keys() and extraparts[a.group] != None:
+        #             layers.append(Attribute(a.group, newemote, '_'.join(basepath+extraparts[a.group])))
+        #             extraparts[a.group] = None
 
         # devlog.info("///// " + str(charpath))
         # for a in layers:
         #    devlog.info( ("Group: ", a.group, "Attribute: ", a.attribute, "Image: ", a.image, "Default: ", a.default) )
-        layered = LayeredImage(layers)
-        spritedict[charpath] = layered
-        renpy.image(charpath, layered)
+        # layered = LayeredImage(layers)
+        # spritedict[charpath] = layered
+        # renpy.image(charpath, layered)
 
     # This is set to the name of the character that is speaking, or
     # None if no character is currently speaking.
@@ -483,7 +563,6 @@ init -50 python:
     valuespath = {}
     mapemotecode = None
     mapemotecode_postscript = None
-    savedemotes = []
     def DynamicSprites_VarUpdate():
         global dynamicspritespreview_var_selectedchar, dynamicspritespreview_var_selectedpose, dynamicspritespreview_var_selectedlayers
         global dynamicspritespreview_text_selectedchar, dynamicspritespreview_text_selectedpose, dynamicspritespreview_text_selectedlayers
@@ -604,7 +683,6 @@ init -50 python:
         def __call__(self):
             global mapemotecode, mapemotecode_postscript
             cb = pygame.scrap.get(pygame.scrap.SCRAP_TEXT)
-            print "HELLO, " + cb
             if type(mapemotecode) != unicode or mapemotecode == "":
                 mapemotecode_postscript = ""
             elif cb == mapemotecode:
