@@ -394,8 +394,8 @@ init -50 python:
                         emote = a.attribute
                         layereddict[layer].append(a)
                         if not emotesdict.has_key(emote):
-                            emotesdict[emote] = []
-                        emotesdict[emote].append(a)
+                            emotesdict[emote] = {}
+                        emotesdict[emote][layer] = a
             mapemotedict[charpath] = {}
             mapemotedict[charpath]['layereddict'] = layereddict
             mapemotedict[charpath]['emotesdict'] = emotesdict
@@ -455,56 +455,6 @@ init -50 python:
             layered = LayeredImage(layers)
             spritedict[charpath] = layered
             renpy.image(charpath, layered)
-
-        # layered = LayeredImage(layers)
-        # spritedict[charpath] = layered
-
-        # found = False
-        # layers = []
-        # layered = spritedict[charpath]
-        # # print "Attributes: ", len(layered.attributes)
-        # for a in layered.attributes:
-        #     #print "Group: ", a.group, "Attribute: ", a.attribute, "Image: ", a.image, "Default: ", a.default
-        #     if bases == a.attribute and a.group == 'base':
-        #         layers.append(a)
-        #         layers.append(Attribute(a.group, newemote, '_'.join(basepath+(bases,))))
-        #     elif newemote == a.attribute:
-        #         found = True
-        #         if eyes != None and a.group == 'ed':
-        #             layers.append(Attribute(a.group, a.attribute, '_'.join(basepath+eyes), a.default))
-        #         elif mouth != None and a.group == 'md':
-        #             layers.append(Attribute(a.group, a.attribute, '_'.join(basepath+mouth), a.default))
-        #         elif a.group in extraparts.keys() and extraparts[a.group] != None:
-        #             layers.append(Attribute(a.group, a.attribute, '_'.join(basepath+extraparts[a.group]), a.default))
-        #         else:
-        #             layers.append(a)
-        #     elif optionals != None and a.group in optionals:
-        #         layers.append(a)
-        #         layers.append(Attribute('___'.join((a.group,newemote)), newemote, '_'.join(basepath + (u'optional', a.group))))
-        #     else:
-        #         layers.append(a)
-        #
-        # if not found:
-        #     oldlayers = layers
-        #     layers = []
-        #     for a in oldlayers:
-        #         layers.append(a)
-        #         if eyes != None and a.group == 'ed':
-        #             layers.append(Attribute('ed', newemote, '_'.join(basepath+eyes)))
-        #             eyes = None
-        #         elif mouth != None and a.group == 'md':
-        #             layers.append(Attribute('md', newemote, '_'.join(basepath+mouth)))
-        #             mouth = None
-        #         elif a.group in extraparts.keys() and extraparts[a.group] != None:
-        #             layers.append(Attribute(a.group, newemote, '_'.join(basepath+extraparts[a.group])))
-        #             extraparts[a.group] = None
-
-        # devlog.info("///// " + str(charpath))
-        # for a in layers:
-        #    devlog.info( ("Group: ", a.group, "Attribute: ", a.attribute, "Image: ", a.image, "Default: ", a.default) )
-        # layered = LayeredImage(layers)
-        # spritedict[charpath] = layered
-        # renpy.image(charpath, layered)
 
     # This is set to the name of the character that is speaking, or
     # None if no character is currently speaking.
